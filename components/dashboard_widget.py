@@ -65,7 +65,7 @@ class StepWidget(QFrame):
         # Status và button
         action_layout = QHBoxLayout()
 
-        self.status_label = QLabel("Ready")
+        self.status_label = QLabel("Sẵn sàng")
         self.status_label.setStyleSheet("color: #666; font-size: 12px;")
 
         self.button = QPushButton(button_text)
@@ -113,7 +113,16 @@ class StepWidget(QFrame):
             "error": "❌",
         }
 
-        self.status_label.setText(f"{status_icons.get(status, '')} {status.title()}")
+        status_text = {
+            "ready": "Sẵn sàng",
+            "processing": "Đang xử lý",
+            "completed": "Hoàn tất",
+            "error": "Lỗi",
+        }
+
+        self.status_label.setText(
+            f"{status_icons.get(status, '')} {status_text.get(status, status)}"
+        )
         self.status_label.setStyleSheet(
             f"color: {status_colors.get(status, '#666')}; font-size: 12px;"
         )
@@ -239,13 +248,13 @@ class DashboardWidget(QWidget):
 
     def reset_workflow(self):
         """Reset workflow to initial state"""
-        self.step1.set_status("ready")
+        self.step1.set_status("ready", "Nhập dữ liệu chính, cấu hình cấp độ và ngày lễ")
         self.step1.set_enabled(True)
 
-        self.step2.set_status("ready")
+        self.step2.set_status("ready", "Kết hợp dữ liệu với cấu hình để tính thưởng")
         self.step2.set_enabled(False)
 
-        self.step3.set_status("ready")
+        self.step3.set_status("ready", "Tải kết quả đã tính với định dạng")
         self.step3.set_enabled(False)
 
         self.reset_button.setVisible(False)
