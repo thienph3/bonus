@@ -255,7 +255,11 @@ class DashboardWidget(QWidget):
         self.step1.set_status("processing", "Importing data...")
         self.step1.set_enabled(False)
 
-    def on_import_completed(self, message="Import completed successfully"):
+    def on_import_completed(self, stats=None):
+        if stats:
+            message = f"✅ Imported: {stats.get('records', 0)} records, {stats.get('levels', 0)} levels, {stats.get('holidays', 0)} holidays"
+        else:
+            message = "Import completed successfully"
         self.step1.set_status("completed", message)
         self.step2.set_enabled(True)
 
@@ -267,7 +271,11 @@ class DashboardWidget(QWidget):
         self.step2.set_status("processing", "Calculating bonuses...")
         self.step2.set_enabled(False)
 
-    def on_calculate_completed(self, message="Calculation completed successfully"):
+    def on_calculate_completed(self, stats=None):
+        if stats:
+            message = f"✅ Calculated: {stats.get('total_records', 0)} records, Total bonus: {stats.get('total_bonus', 0):,.0f} VND"
+        else:
+            message = "Calculation completed successfully"
         self.step2.set_status("completed", message)
         self.step3.set_enabled(True)
 
@@ -275,6 +283,17 @@ class DashboardWidget(QWidget):
         self.step2.set_status("error", f"Calculation failed: {error_msg}")
         self.step2.set_enabled(True)
 
-    def on_export_completed(self, message="Export completed successfully"):
+    def on_export_completed(self, file_path=None):
+        if file_path:
+            import os
+
+            filename = os.path.basename(file_path)
+            message = f"✅ Exported to: {filename}"
+        else:
+            message = "Export completed successfully"
         self.step3.set_status("completed", message)
         self.reset_button.setVisible(True)
+
+    def on_export_error(self, error_msg):
+        self.step3.set_status("error", f"Export failed: {error_msg}")
+        self.step3.set_enabled(True)

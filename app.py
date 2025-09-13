@@ -287,16 +287,9 @@ class App(QWidget):
                         else:
                             worksheet.set_column(idx, idx, max_len)
 
-                self.central_widget.dashboard_widget.on_export_completed(
-                    f"Exported to {file_path}"
-                )
-                QMessageBox.information(
-                    self, "Export Successful", f"File saved to:\n{file_path}"
-                )
+                self.central_widget.dashboard_widget.on_export_completed(file_path)
             except Exception as e:
-                QMessageBox.critical(
-                    self, "Export Failed", f"An error occurred:\n{str(e)}"
-                )
+                self.central_widget.dashboard_widget.on_export_error(str(e))
 
     def to_excel_serial(eslf, d):
         if pd.isna(d):
