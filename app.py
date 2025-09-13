@@ -254,6 +254,7 @@ class App(QWidget):
         )
 
         if file_path:
+            self.central_widget.dashboard_widget.on_export_started()
             try:
                 results: list[Result] = self.central_widget.result_service.get_all()
                 results = sorted(results, key=lambda result: (result.sorted_idx))
