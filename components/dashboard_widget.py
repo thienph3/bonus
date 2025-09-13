@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QProgressBar,
 )
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QFont, QPixmap
 
 
@@ -161,6 +161,7 @@ class DashboardWidget(QWidget):
     import_requested = pyqtSignal()
     calculate_requested = pyqtSignal()
     export_requested = pyqtSignal()
+    reset_requested = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -201,6 +202,27 @@ class DashboardWidget(QWidget):
             "Export to Excel",
         )
 
+        # Reset button
+        self.reset_button = QPushButton("🔄 Start New Calculation")
+        self.reset_button.setStyleSheet(
+            """
+            QPushButton {
+                background-color: #28a745;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 6px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #218838;
+            }
+        """
+        )
+        self.reset_button.clicked.connect(self.reset_workflow)
+        self.reset_button.setVisible(False)
+
         # Connect signals
         self.step1.button.clicked.connect(self.import_requested.emit)
         self.step2.button.clicked.connect(self.calculate_requested.emit)
@@ -210,6 +232,7 @@ class DashboardWidget(QWidget):
         layout.addWidget(self.step1)
         layout.addWidget(self.step2)
         layout.addWidget(self.step3)
+        layout.addWidget(self.reset_button)
         layout.addStretch()
 
         self.setLayout(layout)
@@ -224,6 +247,9 @@ class DashboardWidget(QWidget):
 
         self.step3.set_status("ready")
         self.step3.set_enabled(False)
+
+        self.reset_button.setVisible(False)
+        self.reset_requested.emit()
 
     def on_import_started(self):
         self.step1.set_status("processing", "Importing data...")
@@ -251,3 +277,4 @@ class DashboardWidget(QWidget):
 
     def on_export_completed(self, message="Export completed successfully"):
         self.step3.set_status("completed", message)
+        self.reset_button.setVisible(True)
