@@ -228,9 +228,7 @@ class App(QWidget):
         results = self.central_widget.result_service.get_all()
         total_records = len(results)
         total_bonus = sum(
-            r.bonus_1 + r.bonus_2 + r.bonus_3
-            for r in results
-            if r.bonus_1 and r.bonus_2 and r.bonus_3
+            (r.bonus_1 or 0) + (r.bonus_2 or 0) + (r.bonus_3 or 0) for r in results
         )
 
         stats = {"total_records": total_records, "total_bonus": total_bonus}
