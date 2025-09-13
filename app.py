@@ -21,6 +21,7 @@ from workers.import_holiday_config_worker import ImportHolidayConfigWorker
 from workers.import_level_config_worker import ImportLevelConfigWorker
 from workers.import_main_data_worker import ImportMainDataWorker
 from workers.calculate_result_worker import CalculateResultWorker
+from workers.export_result_worker import ExportResultWorker
 
 
 class App(QWidget):
@@ -245,7 +246,6 @@ class App(QWidget):
 
     def export_result(self):
         """Function run when user click Export button."""
-        # Prompt the user to choose a file location
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Export Result to Excel",
@@ -254,76 +254,46 @@ class App(QWidget):
         )
 
         if file_path:
+            if self.menu.export_result_action:
+                self.menu.export_result_action.setEnabled(False)
             self.central_widget.dashboard_widget.on_export_started()
-            try:
-                results: list[Result] = self.central_widget.result_service.get_all()
-                results = sorted(results, key=lambda result: (result.sorted_idx))
-                results = [result.to_dict() for result in results]
+            self.right_console.log_with_time("📤 Bắt đầu xuất kết quả...")
 
-                df = pd.DataFrame(results)
-                df["document_date"] = df["document_date"].apply(self.to_excel_serial)
-                df["payment_due_date"] = df["payment_due_date"].apply(
-                    self.to_excel_serial
-                )
-                df["payment_due_date_1"] = df["payment_due_date_1"].apply(
-                    self.to_excel_serial
-                )
-                df["payment_due_date_2"] = df["payment_due_date_2"].apply(
-                    self.to_excel_serial
-                )
-                df["payment_due_date_3"] = df["payment_due_date_3"].apply(
-                    self.to_excel_serial
-                )
-                with pd.ExcelWriter(file_path, engine="xlsxwriter") as writer:
-                    df.to_excel(writer, index=False)
+            self.export_result_thread = QThread()
+            self.export_result_worker = ExportResultWorker(file_path)
+            self.export_result_worker.moveToThread(self.export_result_thread)
 
-                    workbook = writer.book
-                    worksheet = writer.sheets["Sheet1"]
-                    date_format = workbook.add_format({"num_format": "dd/mm/yyyy"})
-                    vnd_accounting_format = workbook.add_format({"num_format": "#,##0"})
+            self.export_result_worker.log_signal.connect(
+                self.right_console.log_with_time
+            )
+            self.export_result_worker.finished.connect(self._on_export_result_finished)
+            self.export_result_worker.error.connect(self._on_export_result_error)
 
-                    for idx, col in enumerate(df.columns):
-                        # Get max length of column header and column values as strings
-                        max_len = max(df[col].astype(str).map(len).max(), len(str(col)))
-                        # Add some padding
-                        max_len += 2
+            self.export_result_thread.started.connect(self.export_result_worker.run)
+            self.export_result_worker.finished.connect(self.export_result_thread.quit)
+            self.export_result_worker.error.connect(self.export_result_thread.quit)
+            self.export_result_worker.finished.connect(
+                self.export_result_worker.deleteLater
+            )
+            self.export_result_thread.finished.connect(
+                self.export_result_thread.deleteLater
+            )
 
-                        if col in [
-                            "document_date",
-                            "payment_due_date",
-                            "payment_due_date_1",
-                            "payment_due_date_2",
-                            "payment_due_date_3",
-                        ]:
-                            worksheet.set_column(idx, idx, max_len, date_format)
-                        elif col in [
-                            "increase",
-                            "decrease",
-                            "adjust_increase",
-                            "adjust_decrease",
-                            "bonus_increase",
-                            "non_bonus_increase",
-                            "bonus_decrease",
-                            "non_bonus_decrease",
-                            "bonus_1",
-                            "bonus_2",
-                            "bonus_3",
-                        ]:
-                            worksheet.set_column(
-                                idx, idx, max_len, vnd_accounting_format
-                            )
-                        else:
-                            worksheet.set_column(idx, idx, max_len)
+            self.export_result_thread.start()
 
-                self.central_widget.dashboard_widget.on_export_completed(file_path)
-            except Exception as e:
-                self.central_widget.dashboard_widget.on_export_error(str(e))
+    def _on_export_result_finished(self):
+        self.right_console.log_with_time("🎉 Xuất kết quả hoàn tất.")
+        self.central_widget.dashboard_widget.on_export_completed(
+            self.export_result_worker.file_path
+        )
+        if self.menu.export_result_action:
+            self.menu.export_result_action.setEnabled(True)
 
-    def to_excel_serial(eslf, d):
-        if pd.isna(d):
-            return None
-        excel_start_date = datetime.date(1899, 12, 30)
-        return (d - excel_start_date).days
+    def _on_export_result_error(self, msg):
+        self.right_console.log_with_time(f"❌ Xuất kết quả gặp lỗi: {msg}")
+        self.central_widget.dashboard_widget.on_export_error(msg)
+        if self.menu.export_result_action:
+            self.menu.export_result_action.setEnabled(True)
 
 
 # === Chạy ứng dụng Qt6 ===
