@@ -69,7 +69,19 @@ class App(QWidget):
         self.running_import_threads -= 1
         if self.running_import_threads == 0:
             self.menu.import_action.setEnabled(True)
-            self.central_widget.dashboard_widget.on_import_completed()
+
+            # Get stats for dashboard
+            records_count = len(self.central_widget.main_data_service.get_all())
+            levels_count = len(self.central_widget.level_config_service.get_all())
+            holidays_count = len(self.central_widget.holiday_config_service.get_all())
+
+            stats = {
+                "records": records_count,
+                "levels": levels_count,
+                "holidays": holidays_count,
+            }
+
+            self.central_widget.dashboard_widget.on_import_completed(stats)
             self.right_console.log_with_time("🎉 Nhập dữ liệu vào hoàn tất.")
             self.central_widget.holiday_config_widget.show_list()
             self.central_widget.holiday_config_widget.stack.itemAt(
@@ -208,7 +220,19 @@ class App(QWidget):
 
     def _on_calculate_result_finished(self):
         self.right_console.log_with_time("🎉 Tính toán kết quả hoàn tất.")
-        self.central_widget.dashboard_widget.on_calculate_completed()
+
+        # Get stats for dashboard
+        results = self.central_widget.result_service.get_all()
+        total_records = len(results)
+        total_bonus = sum(
+            r.bonus_1 + r.bonus_2 + r.bonus_3
+            for r in results
+            if r.bonus_1 and r.bonus_2 and r.bonus_3
+        )
+
+        stats = {"total_records": total_records, "total_bonus": total_bonus}
+
+        self.central_widget.dashboard_widget.on_calculate_completed(stats)
         self.menu.calculate_result_action.setEnabled(True)
 
     def _on_calculate_result_error(self, msg):
