@@ -254,8 +254,6 @@ class App(QWidget):
         )
 
         if file_path:
-            if self.menu.export_result_action:
-                self.menu.export_result_action.setEnabled(False)
             self.central_widget.dashboard_widget.on_export_started()
             self.right_console.log_with_time("📤 Bắt đầu xuất kết quả...")
 
@@ -286,14 +284,10 @@ class App(QWidget):
         self.central_widget.dashboard_widget.on_export_completed(
             self.export_result_worker.file_path
         )
-        if self.menu.export_result_action:
-            self.menu.export_result_action.setEnabled(True)
 
     def _on_export_result_error(self, msg):
         self.right_console.log_with_time(f"❌ Xuất kết quả gặp lỗi: {msg}")
         self.central_widget.dashboard_widget.on_export_error(msg)
-        if self.menu.export_result_action:
-            self.menu.export_result_action.setEnabled(True)
 
 
 # === Chạy ứng dụng Qt6 ===
