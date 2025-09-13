@@ -18,30 +18,18 @@ class MenuWidget(QMenuBar):
     ):
         super().__init__(parent)
 
-        # ========== Workflow ==========
-        workflow_menu = self.addMenu("Workflow")
+        # ========== Quy trình ==========
+        workflow_menu = self.addMenu("Quy trình")
 
-        dashboard_action = QAction("📊 Dashboard", parent)
+        dashboard_action = QAction("📊 Màn hình chính", parent)
         dashboard_action.setShortcut(QKeySequence("Ctrl+0"))
         dashboard_action.triggered.connect(parent.central_widget.show_dashboard)
         workflow_menu.addAction(dashboard_action)
 
-        workflow_menu.addSeparator()
-
-        self.import_action = QAction("📥 Import Data", parent)
-        self.import_action.setShortcut(QKeySequence("Ctrl+I"))
-        self.import_action.triggered.connect(import_data_callback)
-        workflow_menu.addAction(self.import_action)
-
-        self.calculate_result_action = QAction("⚙️ Calculate Results", parent)
-        self.calculate_result_action.setShortcut(QKeySequence("Ctrl+C"))
-        self.calculate_result_action.triggered.connect(calculate_result_callback)
-        workflow_menu.addAction(self.calculate_result_action)
-
-        self.export_action = QAction("📤 Export Results", parent)
-        self.export_action.setShortcut(QKeySequence("Ctrl+E"))
-        self.export_action.triggered.connect(export_result_callback)
-        workflow_menu.addAction(self.export_action)
+        # Keep references for enabling/disabling from app.py
+        self.import_action = None
+        self.calculate_result_action = None
+        self.export_action = None
 
         # ========== Xem dữ liệu ==========
         view_menu = self.addMenu("Xem dữ liệu")

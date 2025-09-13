@@ -172,7 +172,7 @@ class DashboardWidget(QWidget):
         layout = QVBoxLayout()
 
         # Title
-        title = QLabel("Bonus Calculator Workflow")
+        title = QLabel("Quy trình tính thưởng")
         title.setFont(QFont("Arial", 18, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title.setStyleSheet("margin: 20px; color: #333;")
@@ -180,30 +180,30 @@ class DashboardWidget(QWidget):
         # Steps
         self.step1 = StepWidget(
             1,
-            "Import Data",
-            "Import Excel file (Data + Configs)",
-            "Imports main data, level config & holiday config",
-            "Select Excel File",
+            "Nhập dữ liệu",
+            "Nhập file Excel (Dữ liệu + Cấu hình)",
+            "Nhập dữ liệu chính, cấu hình cấp độ và ngày lễ",
+            "Chọn file Excel",
         )
 
         self.step2 = StepWidget(
             2,
-            "Calculate Results",
-            "Process bonus calculations",
-            "Matches data with configs and calculates bonuses",
-            "Calculate Bonus",
+            "Tính toán kết quả",
+            "Xử lý tính toán thưởng",
+            "Kết hợp dữ liệu với cấu hình để tính thưởng",
+            "Tính toán thưởng",
         )
 
         self.step3 = StepWidget(
             3,
-            "Export Results",
-            "Export results to Excel",
-            "Download calculated results with formatting",
-            "Export to Excel",
+            "Xuất kết quả",
+            "Xuất kết quả ra Excel",
+            "Tải kết quả đã tính với định dạng",
+            "Xuất ra Excel",
         )
 
         # Reset button
-        self.reset_button = QPushButton("🔄 Start New Calculation")
+        self.reset_button = QPushButton("🔄 Bắt đầu tính toán mới")
         self.reset_button.setStyleSheet(
             """
             QPushButton {
@@ -252,35 +252,35 @@ class DashboardWidget(QWidget):
         self.reset_requested.emit()
 
     def on_import_started(self):
-        self.step1.set_status("processing", "Importing data...")
+        self.step1.set_status("processing", "Đang nhập dữ liệu...")
         self.step1.set_enabled(False)
 
     def on_import_completed(self, stats=None):
         if stats:
-            message = f"✅ Imported: {stats.get('records', 0)} records, {stats.get('levels', 0)} levels, {stats.get('holidays', 0)} holidays"
+            message = f"✅ Đã nhập: {stats.get('records', 0)} bản ghi, {stats.get('levels', 0)} cấp độ, {stats.get('holidays', 0)} ngày lễ"
         else:
-            message = "Import completed successfully"
+            message = "Nhập dữ liệu thành công"
         self.step1.set_status("completed", message)
         self.step2.set_enabled(True)
 
     def on_import_error(self, error_msg):
-        self.step1.set_status("error", f"Import failed: {error_msg}")
+        self.step1.set_status("error", f"Nhập dữ liệu thất bại: {error_msg}")
         self.step1.set_enabled(True)
 
     def on_calculate_started(self):
-        self.step2.set_status("processing", "Calculating bonuses...")
+        self.step2.set_status("processing", "Đang tính toán thưởng...")
         self.step2.set_enabled(False)
 
     def on_calculate_completed(self, stats=None):
         if stats:
-            message = f"✅ Calculated: {stats.get('total_records', 0)} records, Total bonus: {stats.get('total_bonus', 0):,.0f} VND"
+            message = f"✅ Đã tính: {stats.get('total_records', 0)} bản ghi, Tổng thưởng: {stats.get('total_bonus', 0):,.0f} VNĐ"
         else:
-            message = "Calculation completed successfully"
+            message = "Tính toán hoàn tất thành công"
         self.step2.set_status("completed", message)
         self.step3.set_enabled(True)
 
     def on_calculate_error(self, error_msg):
-        self.step2.set_status("error", f"Calculation failed: {error_msg}")
+        self.step2.set_status("error", f"Tính toán thất bại: {error_msg}")
         self.step2.set_enabled(True)
 
     def on_export_completed(self, file_path=None):
@@ -288,12 +288,12 @@ class DashboardWidget(QWidget):
             import os
 
             filename = os.path.basename(file_path)
-            message = f"✅ Exported to: {filename}"
+            message = f"✅ Đã xuất: {filename}"
         else:
-            message = "Export completed successfully"
+            message = "Xuất dữ liệu thành công"
         self.step3.set_status("completed", message)
         self.reset_button.setVisible(True)
 
     def on_export_error(self, error_msg):
-        self.step3.set_status("error", f"Export failed: {error_msg}")
+        self.step3.set_status("error", f"Xuất dữ liệu thất bại: {error_msg}")
         self.step3.set_enabled(True)

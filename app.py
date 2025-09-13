@@ -55,7 +55,8 @@ class App(QWidget):
             self, "Open Excel File", "", "Excel Files (*.xlsx *.xls)"
         )
         if file_path:
-            self.menu.import_action.setEnabled(False)
+            if self.menu.import_action:
+                self.menu.import_action.setEnabled(False)
             self.central_widget.dashboard_widget.on_import_started()
             self.right_console.log_import_banner()
             self.right_console.log_with_time("📥 Bắt đầu nhập dữ liệu vào...")
@@ -68,7 +69,8 @@ class App(QWidget):
     def _import_thread_finished_handler(self):
         self.running_import_threads -= 1
         if self.running_import_threads == 0:
-            self.menu.import_action.setEnabled(True)
+            if self.menu.import_action:
+                self.menu.import_action.setEnabled(True)
 
             # Get stats for dashboard
             records_count = len(self.central_widget.main_data_service.get_all())
@@ -189,7 +191,8 @@ class App(QWidget):
         self._import_thread_finished_handler()
 
     def calculate_result(self):
-        self.menu.calculate_result_action.setEnabled(False)
+        if self.menu.calculate_result_action:
+            self.menu.calculate_result_action.setEnabled(False)
         self.central_widget.dashboard_widget.on_calculate_started()
         self.right_console.log_calculate_banner()
         self.right_console.log_with_time("📥 Bắt đầu tính toán kết quả...")
@@ -233,12 +236,14 @@ class App(QWidget):
         stats = {"total_records": total_records, "total_bonus": total_bonus}
 
         self.central_widget.dashboard_widget.on_calculate_completed(stats)
-        self.menu.calculate_result_action.setEnabled(True)
+        if self.menu.calculate_result_action:
+            self.menu.calculate_result_action.setEnabled(True)
 
     def _on_calculate_result_error(self, msg):
         self.right_console.log_with_time(f"❌ Tính toán kết quả gặp lỗi: {msg}")
         self.central_widget.dashboard_widget.on_calculate_error(msg)
-        self.menu.calculate_result_action.setEnabled(True)
+        if self.menu.calculate_result_action:
+            self.menu.calculate_result_action.setEnabled(True)
 
     def export_result(self):
         """Function run when user click Export button."""
