@@ -50,15 +50,19 @@
 ## 3. EXPORT - Xuất kết quả
 
 ### Luồng xử lý:
-1. **Load tất cả Result records** → sort theo sorted_idx
-2. **Convert to DataFrame:**
-   - result.to_dict() → merge main_data fields
-   - Convert date fields to Excel serial format
-3. **Export to Excel:**
-   - Auto-resize columns
-   - Apply date format (dd/mm/yyyy)
-   - Apply number format (#,##0) cho amount fields
-4. **Show success/error message**
+1. **Chọn file path** → QFileDialog.getSaveFileName()
+2. **Start ExportResultWorker thread:**
+   - Load tất cả Result records → sort theo sorted_idx
+   - Convert to DataFrame với date serial format
+   - Export to Excel với xlsxwriter engine
+   - Auto-resize columns + apply formatting
+3. **Background processing:**
+   - Dashboard hiển thị processing status
+   - Console log chi tiết từng bước
+   - Icon xoay + text animation
+4. **Completion handling:**
+   - Success: Hiển thị filename đã xuất
+   - Error: Hiển thị error message
 
 ## Ưu điểm
 
@@ -77,9 +81,11 @@
 - Holiday adjustment → logic nghiệp vụ chính xác
 
 **Export:**
+- Background thread → không block UI
+- Real-time status tracking → UX tốt
 - Format Excel chuyên nghiệp → dễ đọc
-- Auto-resize columns → UX tốt
-- Date/number formatting → chuẩn định dạng
+- Auto-resize columns + formatting → chuẩn định dạng
+- Progress logging → dễ debug
 
 ## Khuyết điểm
 
@@ -104,6 +110,5 @@
 
 **Tổng thể:**
 - Không có transaction rollback toàn bộ
-- Thiếu logging chi tiết cho debug
 - Không có unit test → khó đảm bảo chất lượng
-- UI freeze khi export data lớn
+- Complex business logic → khó maintain

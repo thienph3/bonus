@@ -46,9 +46,26 @@ python app.py
 ```
 
 ## Workflow sử dụng
-1. **Import Data:** Chọn file Excel chứa dữ liệu
-2. **Calculate:** Tính toán thưởng dựa trên cấu hình
-3. **Export:** Xuất kết quả ra file Excel
+
+### 🏠 Dashboard chính:
+- **3 bước tuần tự**: Nhập dữ liệu → Tính toán → Xuất kết quả
+- **Real-time status**: Icon xoay + text animation khi đang xử lý
+- **Progress tracking**: Hiển thị số lượng records, thời gian hoàn thành
+
+### 📥 Bước 1 - Import Data:
+- Chọn file Excel chứa 3 sheet: Data, level_config, holiday_config
+- Import song song 3 worker threads
+- Hiển thị thống kê: X bản ghi, Y cấp độ, Z ngày lễ
+
+### ⚙️ Bước 2 - Calculate:
+- Xử lý logic FIFO stack phức tạp
+- Tính toán 3-tier bonus system
+- Hiển thị tổng thưởng và số records
+
+### 📤 Bước 3 - Export:
+- Chọn đường dẫn lưu file
+- Export background thread
+- Format Excel chuyên nghiệp với auto-resize
 
 ## Cấu trúc file Excel input
 - **Sheet "Data":** Dữ liệu bán hàng (17 cột, skip 13-14 rows đầu)
@@ -56,13 +73,39 @@ python app.py
 - **Sheet "holiday_config":** Danh sách ngày lễ
 
 ## Troubleshooting
-- **Lỗi import:** Kiểm tra format Excel và tên sheet
-- **Lỗi calculate:** Đảm bảo đã import đủ dữ liệu
-- **UI không hiển thị:** Kiểm tra PyQt6 đã cài đặt đúng
+
+### 🚫 Lỗi thường gặp:
+- **Import fail:** Kiểm tra tên sheet (Data, level_config, holiday_config)
+- **Calculate không hoạt động:** Đảm bảo đã import đủ 3 loại dữ liệu
+- **Export bị treo:** Kiểm tra quyền ghi file và đường dẫn
+- **UI freeze:** Tất cả operations đã chuyển sang background threads
+
+### 🔍 Debug tips:
+- Kiểm tra Console log ở panel bên phải
+- Status animation dừng = có lỗi xảy ra
+- Database file: `database.db` trong thư mục gốc
+- Log files: Tự động ghi vào console widget
+
+## Tính năng nâng cao
+
+### 🎨 Themes:
+- Light theme (mặc định)
+- Dark theme
+- Switch qua menu hoặc phím tắt
+
+### 📊 Console Logging:
+- Real-time progress tracking
+- Chi tiết từng bước xử lý
+- Error messages với stack trace
+- Import/Calculate/Export banners
+
+### 🔄 Animation Features:
+- Rotating gear icon khi processing
+- Text dots animation (1-100 dots)
+- Status color coding (ready/processing/completed/error)
+- Smooth transitions giữa các trạng thái
 
 ## Phím tắt
-- `Ctrl+0` - Màn hình chính
-- `Ctrl+I` - Import dữ liệu
-- `Ctrl+C` - Tính toán
-- `Ctrl+E` - Export kết quả
-- `Ctrl+T` - Đổi theme
+- Menu shortcuts theo chuẩn (Alt + underlined letter)
+- Dashboard workflow: Click từng bước theo thứ tự
+- Reset workflow: Nút "Bắt đầu tính toán mới"
