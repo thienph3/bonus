@@ -71,8 +71,8 @@ class StepWidget(QFrame):
 
         # Create status icon labels
         self.status_icon = QLabel("⏳")
-        self.status_icon.setStyleSheet("font-size: 14px;")
-        self.status_icon.setFixedSize(16, 16)
+        self.status_icon.setStyleSheet("font-size: 12px;")
+        self.status_icon.setMinimumSize(16, 16)
         self.status_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.spin_icon = RotatingLabel("⚙")
