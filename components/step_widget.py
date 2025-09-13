@@ -223,4 +223,4 @@ class StepWidget(QFrame):
     def _update_text(self):
         dots = "." * self.dot_count
         self.status_label.setText(f"Đang xử lý{dots}")
-        self.dot_count = (self.dot_count % 10) + 1
+        self.dot_count = (self.dot_count % 100) + 1
