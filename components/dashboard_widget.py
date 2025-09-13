@@ -17,6 +17,7 @@ class StepWidget(QFrame):
         self.step_number = step_number
         self.spin_timer = None
         self.spin_angle = 0
+        self.spin_icon = None
         self.setFrameStyle(QFrame.Shape.Box)
         self.setStyleSheet(
             "QFrame { border: 2px solid #ddd; border-radius: 8px; padding: 10px; }"
@@ -70,6 +71,11 @@ class StepWidget(QFrame):
         self.status_label = QLabel("Sẵn sàng")
         self.status_label.setStyleSheet("color: #666; font-size: 12px;")
 
+        # Create spinning icon label
+        self.spin_icon = QLabel("⚙️")
+        self.spin_icon.setStyleSheet("font-size: 12px;")
+        self.spin_icon.setVisible(False)
+
         self.button = QPushButton(button_text)
         self.button.setStyleSheet(
             """
@@ -91,7 +97,13 @@ class StepWidget(QFrame):
         """
         )
 
-        action_layout.addWidget(self.status_label)
+        # Status layout with spinning icon
+        status_layout = QHBoxLayout()
+        status_layout.addWidget(self.spin_icon)
+        status_layout.addWidget(self.status_label)
+        status_layout.setSpacing(5)
+
+        action_layout.addLayout(status_layout)
         action_layout.addStretch()
         action_layout.addWidget(self.button)
 
@@ -125,12 +137,14 @@ class StepWidget(QFrame):
         # Handle spinning animation for processing
         if status == "processing":
             self._start_spin_animation()
+            self.spin_icon.setVisible(True)
+            self.status_label.setText(f"{status_text.get(status, status)}")
         else:
             self._stop_spin_animation()
-
-        self.status_label.setText(
-            f"{status_icons.get(status, '')} {status_text.get(status, status)}"
-        )
+            self.spin_icon.setVisible(False)
+            self.status_label.setText(
+                f"{status_icons.get(status, '')} {status_text.get(status, status)}"
+            )
         self.status_label.setStyleSheet(
             f"color: {status_colors.get(status, '#666')}; font-size: 12px;"
         )
@@ -177,20 +191,23 @@ class StepWidget(QFrame):
         if not self.spin_timer:
             self.spin_timer = QTimer()
             self.spin_timer.timeout.connect(self._update_spin)
-        self.spin_timer.start(300)  # Update every 300ms
+        self.spin_timer.start(50)  # Update every 50ms for smooth rotation
 
     def _stop_spin_animation(self):
         if self.spin_timer:
             self.spin_timer.stop()
+            self.spin_angle = 0
 
     def _update_spin(self):
-        icons = ["⚙️", "🔄", "⚙️", "🔄"]
-        icon_index = self.spin_angle % len(icons)
-        self.spin_angle += 1
-
-        current_text = self.status_label.text()
-        if "Đang xử lý" in current_text:
-            self.status_label.setText(f"{icons[icon_index]} Đang xử lý")
+        self.spin_angle = (self.spin_angle + 10) % 360
+        self.spin_icon.setStyleSheet(
+            f"""
+            QLabel {{
+                font-size: 12px;
+                transform: rotate({self.spin_angle}deg);
+            }}
+        """
+        )
 
 
 class DashboardWidget(QWidget):
