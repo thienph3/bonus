@@ -7,16 +7,46 @@ from PyQt6.QtWidgets import (
     QFrame,
     QProgressBar,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtCore import Qt, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty
+from PyQt6.QtGui import QFont, QTransform, QPainter
+
+
+class RotatingLabel(QLabel):
+    def __init__(self, text=""):
+        super().__init__(text)
+        self._rotation = 0
+
+    @pyqtProperty(float)
+    def rotation(self):
+        return self._rotation
+
+    @rotation.setter
+    def rotation(self, value):
+        self._rotation = value
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Get the center point
+        rect = self.rect()
+        center = rect.center()
+
+        # Apply rotation
+        painter.translate(center)
+        painter.rotate(self._rotation)
+        painter.translate(-center)
+
+        # Draw the text
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, self.text())
 
 
 class StepWidget(QFrame):
     def __init__(self, step_number, title, description, sub_info, button_text):
         super().__init__()
         self.step_number = step_number
-        self.spin_timer = None
-        self.spin_angle = 0
+        self.spin_animation = None
         self.spin_icon = None
         self.setFrameStyle(QFrame.Shape.Box)
         self.setStyleSheet(
@@ -72,7 +102,7 @@ class StepWidget(QFrame):
         self.status_label.setStyleSheet("color: #666; font-size: 12px;")
 
         # Create spinning icon label
-        self.spin_icon = QLabel("⚙️")
+        self.spin_icon = RotatingLabel("⚙️")
         self.spin_icon.setStyleSheet("font-size: 12px;")
         self.spin_icon.setVisible(False)
 
@@ -188,26 +218,19 @@ class StepWidget(QFrame):
             )
 
     def _start_spin_animation(self):
-        if not self.spin_timer:
-            self.spin_timer = QTimer()
-            self.spin_timer.timeout.connect(self._update_spin)
-        self.spin_timer.start(50)  # Update every 50ms for smooth rotation
+        if not self.spin_animation:
+            self.spin_animation = QPropertyAnimation(self.spin_icon, b"rotation")
+            self.spin_animation.setDuration(1000)
+            self.spin_animation.setStartValue(0)
+            self.spin_animation.setEndValue(360)
+            self.spin_animation.setLoopCount(-1)
+            self.spin_animation.setEasingCurve(QEasingCurve.Type.Linear)
+        self.spin_animation.start()
 
     def _stop_spin_animation(self):
-        if self.spin_timer:
-            self.spin_timer.stop()
-            self.spin_angle = 0
-
-    def _update_spin(self):
-        self.spin_angle = (self.spin_angle + 10) % 360
-        self.spin_icon.setStyleSheet(
-            f"""
-            QLabel {{
-                font-size: 12px;
-                transform: rotate({self.spin_angle}deg);
-            }}
-        """
-        )
+        if self.spin_animation:
+            self.spin_animation.stop()
+            self.spin_icon.rotation = 0
 
 
 class DashboardWidget(QWidget):
