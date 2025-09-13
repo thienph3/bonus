@@ -50,12 +50,20 @@ class ResultService:
                 status = "invalid"
                 message = ""
 
+                errors = []
+                if not data.document_number or data.document_number.strip() == "":
+                    errors.append("Document number is empty")
                 if data.payment_period is None:
-                    message = "Payment period is null"
-                elif not data.seasonal_code or not data.sales_method:
-                    message = "Missing seasonal_code or sales_method"
-                elif not data.document_number or data.document_number.strip() == "":
-                    message = "Document number is empty"
+                    errors.append("Payment period is null")
+                elif data.payment_period < 0:
+                    errors.append("Payment period must be >= 0")
+                if not data.seasonal_code or data.seasonal_code.strip() == "":
+                    errors.append("Missing seasonal_code")
+                if not data.sales_method or data.sales_method.strip() == "":
+                    errors.append("Missing sales_method")
+
+                if errors:
+                    message = "; ".join(errors)
                 else:
                     # Find matching level (case-insensitive)
                     for level in sorted_levels:
