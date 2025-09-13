@@ -16,7 +16,7 @@ pyinstaller --onefile --windowed --name="BonusCalculator" --add-data="themes;the
 
 ### 2. Build với icon
 ```bash
-pyinstaller --onefile --windowed --name="BonusCalculator" --icon="assets/calculate_icon.png" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
+pyinstaller --onefile --windowed --name="BonusCalculator" --icon="assets/bonus_app.png" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
 ```
 
 ## Build Options
