@@ -166,7 +166,7 @@ class StepWidget(QFrame):
             self.status_icon.setVisible(True)
             self.spin_icon.setVisible(False)
             self.status_label.setText(status_text.get(status, status))
-            self.set_sub_step("")  # Clear sub-step when not processing
+            self.set_sub_step(0)  # Clear sub-step when not processing
         self.status_label.setStyleSheet(
             f"color: {status_colors.get(status, '#666')}; font-size: 12px;"
         )
