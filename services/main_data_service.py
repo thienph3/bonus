@@ -106,8 +106,15 @@ class MainDataService:
     #     except Exception as e:
     #         log_func(f"❌ An error occurred during import: {e}")
     #         raise
-    
-    def read_excel_data_dynamic(self, file_path, sheet_name="Data", max_scan_rows=30, min_non_empty=17, max_col=17):
+
+    def read_excel_data_dynamic(
+        self,
+        file_path,
+        sheet_name="Data",
+        max_scan_rows=30,
+        min_non_empty=17,
+        max_col=17,
+    ):
         ext = os.path.splitext(file_path)[-1].lower()
 
         if ext == ".xlsx":
@@ -115,7 +122,9 @@ class MainDataService:
             sheet = wb[sheet_name]
 
             data_start_row = None
-            for i, row in enumerate(sheet.iter_rows(min_row=1, max_row=max_scan_rows), start=1):
+            for i, row in enumerate(
+                sheet.iter_rows(min_row=1, max_row=max_scan_rows), start=1
+            ):
                 values = [cell.value for cell in row]
                 if sum(1 for v in values if v not in (None, "", " ")) >= min_non_empty:
                     data_start_row = i
@@ -123,7 +132,7 @@ class MainDataService:
 
             if data_start_row is None:
                 raise Exception("No data found in .xlsx file")
-            
+
             data_start_row += 1
 
             # Read data from data_start_row onwards
@@ -149,7 +158,7 @@ class MainDataService:
 
             if data_start_row is None:
                 raise Exception("No data found in .xls file")
-            
+
             data_start_row += 2
 
             result = []
@@ -163,7 +172,6 @@ class MainDataService:
 
         else:
             raise ValueError("Unsupported file extension: must be .xls or .xlsx")
-
 
     def import_data(self, file_path, log_func=print, batch_size=100):
         try:

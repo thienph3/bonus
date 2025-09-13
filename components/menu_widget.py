@@ -21,6 +21,13 @@ class MenuWidget(QMenuBar):
         # ========== Hệ thống ==========
         system_menu = self.addMenu("Hệ thống")
 
+        dashboard_action = QAction("Màn hình chính", parent)
+        dashboard_action.setShortcut(QKeySequence("Ctrl+0"))
+        dashboard_action.triggered.connect(parent.central_widget.show_dashboard)
+        system_menu.addAction(dashboard_action)
+
+        system_menu.addSeparator()
+
         theme_action = QAction("Đổi theme", parent)
         theme_action.setShortcut(QKeySequence("Ctrl+T"))
         theme_action.triggered.connect(self.toggle_theme)
@@ -69,6 +76,17 @@ class MenuWidget(QMenuBar):
         self.export_action.setShortcut(QKeySequence("Ctrl+E"))
         self.export_action.triggered.connect(export_result_callback)
         result_menu.addAction(self.export_action)
+
+        # Connect dashboard workflow signals
+        parent.central_widget.dashboard_widget.import_requested.connect(
+            import_data_callback
+        )
+        parent.central_widget.dashboard_widget.calculate_requested.connect(
+            calculate_result_callback
+        )
+        parent.central_widget.dashboard_widget.export_requested.connect(
+            export_result_callback
+        )
 
     def load_stylesheet(self, path):
         with open(resource_path(path), "r", encoding="utf-8") as f:

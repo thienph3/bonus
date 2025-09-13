@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 
 def parse_number(number_str):
-    if number_str is None or number_str == '':
+    if number_str is None or number_str == "":
         return None
     if pd.isna(number_str):
         return None

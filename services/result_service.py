@@ -86,15 +86,22 @@ class ResultService:
                 else:
                     type = -1
 
-                payment_due_date = data.document_date + timedelta(
-                    days=data.payment_period or 0
-                ) if data.document_date else date(1900, 1, 1)
+                payment_due_date = (
+                    data.document_date + timedelta(days=data.payment_period or 0)
+                    if data.document_date
+                    else date(1900, 1, 1)
+                )
                 if type == 1:
                     payment_due_date_1 = (
                         (
                             level.payment_due_date_1
                             or (
-                                (data.document_date + timedelta(days=level.payment_period_1 or 0))  if data.document_date else date(1900, 1, 1)
+                                (
+                                    data.document_date
+                                    + timedelta(days=level.payment_period_1 or 0)
+                                )
+                                if data.document_date
+                                else date(1900, 1, 1)
                             )
                         )
                         if level
@@ -104,7 +111,12 @@ class ResultService:
                         (
                             level.payment_due_date_2
                             or (
-                                (data.document_date + timedelta(days=level.payment_period_2 or 0))  if data.document_date else date(1900, 1, 1)
+                                (
+                                    data.document_date
+                                    + timedelta(days=level.payment_period_2 or 0)
+                                )
+                                if data.document_date
+                                else date(1900, 1, 1)
                             )
                         )
                         if level
@@ -114,7 +126,12 @@ class ResultService:
                         (
                             level.payment_due_date_3
                             or (
-                                (data.document_date + timedelta(days=level.payment_period_3 or 0)) if data.document_date else date(1900, 1, 1)
+                                (
+                                    data.document_date
+                                    + timedelta(days=level.payment_period_3 or 0)
+                                )
+                                if data.document_date
+                                else date(1900, 1, 1)
                             )
                         )
                         if level

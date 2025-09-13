@@ -56,6 +56,7 @@ class App(QWidget):
         )
         if file_path:
             self.menu.import_action.setEnabled(False)
+            self.central_widget.dashboard_widget.on_import_started()
             self.right_console.log_import_banner()
             self.right_console.log_with_time("📥 Bắt đầu nhập dữ liệu vào...")
             self.running_import_threads = 3
@@ -68,9 +69,12 @@ class App(QWidget):
         self.running_import_threads -= 1
         if self.running_import_threads == 0:
             self.menu.import_action.setEnabled(True)
+            self.central_widget.dashboard_widget.on_import_completed()
             self.right_console.log_with_time("🎉 Nhập dữ liệu vào hoàn tất.")
             self.central_widget.holiday_config_widget.show_list()
-            self.central_widget.holiday_config_widget.stack.itemAt(0).widget().load_data()
+            self.central_widget.holiday_config_widget.stack.itemAt(
+                0
+            ).widget().load_data()
             self.central_widget.level_config_widget.show_list()
             self.central_widget.level_config_widget.stack.itemAt(0).widget().load_data()
             self.central_widget.main_data_widget.show_list()
@@ -111,6 +115,7 @@ class App(QWidget):
         self.right_console.log_with_time(
             f"❌ Nhập dữ liệu vào holiday-config gặp lỗi: {msg}"
         )
+        self.central_widget.dashboard_widget.on_import_error(msg)
         self._import_thread_finished_handler()
 
     def _start_import_level_config(self, file_path: str):
@@ -173,6 +178,7 @@ class App(QWidget):
 
     def calculate_result(self):
         self.menu.calculate_result_action.setEnabled(False)
+        self.central_widget.dashboard_widget.on_calculate_started()
         self.right_console.log_calculate_banner()
         self.right_console.log_with_time("📥 Bắt đầu tính toán kết quả...")
 
@@ -202,10 +208,12 @@ class App(QWidget):
 
     def _on_calculate_result_finished(self):
         self.right_console.log_with_time("🎉 Tính toán kết quả hoàn tất.")
+        self.central_widget.dashboard_widget.on_calculate_completed()
         self.menu.calculate_result_action.setEnabled(True)
 
     def _on_calculate_result_error(self, msg):
         self.right_console.log_with_time(f"❌ Tính toán kết quả gặp lỗi: {msg}")
+        self.central_widget.dashboard_widget.on_calculate_error(msg)
         self.menu.calculate_result_action.setEnabled(True)
 
     def export_result(self):
@@ -279,6 +287,9 @@ class App(QWidget):
                         else:
                             worksheet.set_column(idx, idx, max_len)
 
+                self.central_widget.dashboard_widget.on_export_completed(
+                    f"Exported to {file_path}"
+                )
                 QMessageBox.information(
                     self, "Export Successful", f"File saved to:\n{file_path}"
                 )
