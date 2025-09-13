@@ -54,12 +54,14 @@ class ResultService:
                     message = "Payment period is null"
                 elif not data.seasonal_code or not data.sales_method:
                     message = "Missing seasonal_code or sales_method"
+                elif not data.document_number or data.document_number.strip() == "":
+                    message = "Document number is empty"
                 else:
-                    # Find matching level
+                    # Find matching level (case-insensitive)
                     for level in sorted_levels:
                         if (
-                            data.seasonal_code == level.seasonal_code
-                            and data.sales_method == level.sales_method
+                            data.seasonal_code.lower() == level.seasonal_code.lower()
+                            and data.sales_method.lower() == level.sales_method.lower()
                             and data.payment_period >= level.payment_period
                         ):
                             level_id = level.id
