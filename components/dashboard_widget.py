@@ -15,6 +15,8 @@ class StepWidget(QFrame):
     def __init__(self, step_number, title, description, sub_info, button_text):
         super().__init__()
         self.step_number = step_number
+        self.spin_timer = None
+        self.spin_angle = 0
         self.setFrameStyle(QFrame.Shape.Box)
         self.setStyleSheet(
             "QFrame { border: 2px solid #ddd; border-radius: 8px; padding: 10px; }"
@@ -120,6 +122,12 @@ class StepWidget(QFrame):
             "error": "Lỗi",
         }
 
+        # Handle spinning animation for processing
+        if status == "processing":
+            self._start_spin_animation()
+        else:
+            self._stop_spin_animation()
+
         self.status_label.setText(
             f"{status_icons.get(status, '')} {status_text.get(status, status)}"
         )
@@ -164,6 +172,25 @@ class StepWidget(QFrame):
             self.setStyleSheet(
                 "QFrame { border: 2px solid #ddd; border-radius: 8px; padding: 10px; }"
             )
+
+    def _start_spin_animation(self):
+        if not self.spin_timer:
+            self.spin_timer = QTimer()
+            self.spin_timer.timeout.connect(self._update_spin)
+        self.spin_timer.start(300)  # Update every 300ms
+
+    def _stop_spin_animation(self):
+        if self.spin_timer:
+            self.spin_timer.stop()
+
+    def _update_spin(self):
+        icons = ["⚙️", "🔄", "⚙️", "🔄"]
+        icon_index = self.spin_angle % len(icons)
+        self.spin_angle += 1
+
+        current_text = self.status_label.text()
+        if "Đang xử lý" in current_text:
+            self.status_label.setText(f"{icons[icon_index]} Đang xử lý")
 
 
 class DashboardWidget(QWidget):
@@ -291,6 +318,10 @@ class DashboardWidget(QWidget):
     def on_calculate_error(self, error_msg):
         self.step2.set_status("error", f"Tính toán thất bại: {error_msg}")
         self.step2.set_enabled(True)
+
+    def on_export_started(self):
+        self.step3.set_status("processing", "Đang xuất dữ liệu...")
+        self.step3.set_enabled(False)
 
     def on_export_completed(self, file_path=None):
         if file_path:
