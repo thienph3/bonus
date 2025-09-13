@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QPushButton,
     QFrame,
 )
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QTimer
 from PyQt6.QtGui import QFont
 from .rotating_label import RotatingLabel
 
@@ -16,6 +16,8 @@ class StepWidget(QFrame):
         self.step_number = step_number
         self.spin_animation = None
         self.spin_icon = None
+        self.text_timer = None
+        self.dot_count = 1
         self.setFrameStyle(QFrame.Shape.Box)
         self.setStyleSheet(
             "QFrame { border: 2px solid #ddd; border-radius: 8px; padding: 10px; }"
@@ -140,15 +142,16 @@ class StepWidget(QFrame):
         # Handle status icons
         if status == "processing":
             self._start_spin_animation()
+            self._start_text_animation()
             self.status_icon.setVisible(False)
             self.spin_icon.setVisible(True)
         else:
             self._stop_spin_animation()
+            self._stop_text_animation()
             self.status_icon.setText(status_icons.get(status, ""))
             self.status_icon.setVisible(True)
             self.spin_icon.setVisible(False)
-
-        self.status_label.setText(status_text.get(status, status))
+            self.status_label.setText(status_text.get(status, status))
         self.status_label.setStyleSheet(
             f"color: {status_colors.get(status, '#666')}; font-size: 12px;"
         )
@@ -205,3 +208,19 @@ class StepWidget(QFrame):
         if self.spin_animation:
             self.spin_animation.stop()
             self.spin_icon.rotation = 0
+
+    def _start_text_animation(self):
+        if not self.text_timer:
+            self.text_timer = QTimer()
+            self.text_timer.timeout.connect(self._update_text)
+        self.text_timer.start(200)
+
+    def _stop_text_animation(self):
+        if self.text_timer:
+            self.text_timer.stop()
+            self.dot_count = 1
+
+    def _update_text(self):
+        dots = "." * self.dot_count
+        self.status_label.setText(f"Đang xử lý{dots}")
+        self.dot_count = (self.dot_count % 10) + 1
