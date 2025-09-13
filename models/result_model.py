@@ -32,6 +32,9 @@ class Result(Base):
     payment_due_date_1 = Column(Date, nullable=True, default=None)
     payment_due_date_2 = Column(Date, nullable=True, default=None)
     payment_due_date_3 = Column(Date, nullable=True, default=None)
+    calculate_status = Column(String, nullable=False, default="valid")
+    calculate_message = Column(String, nullable=False, default="")
+    original_idx = Column(Integer, nullable=False, default=0)
 
     main_data = relationship("MainData")
     level_config = relationship("LevelConfig")
@@ -56,4 +59,7 @@ class Result(Base):
         res["bonus_3"] = self.bonus_3
         res["before_remain"] = self.before_remain
         res["after_remain"] = self.after_remain
+        res["calculate_status"] = self.calculate_status
+        res["calculate_message"] = self.calculate_message
+        res["original_idx"] = self.original_idx
         return res

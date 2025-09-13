@@ -118,6 +118,10 @@ class DashboardWidget(QWidget):
         self.step2.set_status("processing", "Đang tính toán thưởng...")
         self.step2.set_enabled(False)
 
+    def on_calculate_sub_step(self, current_step):
+        """Update calculate sub-step status (1-4)"""
+        self.step2.set_sub_step(current_step)
+
     def on_calculate_completed(self, stats=None):
         if stats:
             message = f"✅ Đã tính: {stats.get('total_records', 0)} bản ghi, Tổng thưởng: {stats.get('total_bonus', 0):,.0f} VNĐ"

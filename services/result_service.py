@@ -19,7 +19,7 @@ class ResultService:
         self.level_config_repo = LevelConfigRepository()
         self.main_data_repo = MainDataRepository()
 
-    def calculate_result(self, log_func=print):
+    def calculate_result(self, log_func=print, sub_step_func=None):
         log_func("Load toàn bộ holiday_config lên RAM...")
         holidays = self.holiday_config_repo.get_all()
         log_func("Load toàn bộ level_config lên RAM...")
@@ -41,33 +41,54 @@ class ResultService:
                 ),
             )
 
-            data_with_level_dict: dict[str, str] = {}
+            # Create result for ALL main_data records
+            data_with_level_dict: dict[str, tuple[str, str, str]] = (
+                {}
+            )  # data_id -> (level_id, status, message)
             for data in datas:
-                for level in sorted_levels:
-                    if (
-                        data.seasonal_code != level.seasonal_code
-                        or data.sales_method != level.sales_method
-                    ):
-                        continue
-                    if data.id not in data_with_level_dict:
-                        if data.payment_period is None:
-                            data_with_level_dict[data.id] = None
-                        elif data.payment_period >= level.payment_period:
-                            data_with_level_dict[data.id] = level.id
+                level_id = None
+                status = "invalid"
+                message = ""
+
+                if data.payment_period is None:
+                    message = "Payment period is null"
+                elif not data.seasonal_code or not data.sales_method:
+                    message = "Missing seasonal_code or sales_method"
+                else:
+                    # Find matching level
+                    for level in sorted_levels:
+                        if (
+                            data.seasonal_code == level.seasonal_code
+                            and data.sales_method == level.sales_method
+                            and data.payment_period >= level.payment_period
+                        ):
+                            level_id = level.id
+                            status = "valid"
+                            message = ""
+                            break
+
+                    if not level_id:
+                        message = f"No matching level config for seasonal_code={data.seasonal_code}, sales_method={data.sales_method}, payment_period={data.payment_period}"
+
+                data_with_level_dict[data.id] = (level_id, status, message)
 
             level_dict: dict[str, LevelConfig] = {level.id: level for level in levels}
             data_dict: dict[str, MainData] = {data.id: data for data in datas}
 
             log_func("Bắt đầu khởi tạo kết quả...")
+            if sub_step_func:
+                sub_step_func(1)
             idx = 0
             batch = []
             total = 0
             batch_size = 100
             for data_id in data_with_level_dict:
                 data: MainData = data_dict[data_id]
-                level_id: str = data_with_level_dict[data_id]
+                level_id, calc_status, calc_message = data_with_level_dict[data_id]
                 level: LevelConfig | None = (
-                    level_dict[level_id] if level_id in level_dict else None
+                    level_dict[level_id]
+                    if level_id and level_id in level_dict
+                    else None
                 )
 
                 increase = data.increase or 0
@@ -155,7 +176,8 @@ class ResultService:
                 result = {
                     "main_data_id": data_id,
                     "level_config_id": level_id,
-                    "sorted_idx": 0,
+                    "sorted_idx": 0,  # Will be set later for FIFO calculation
+                    "original_idx": idx,  # Keep original input order
                     "type": type,
                     "payment_due_date": payment_due_date,
                     "bonus_decrease": bonus_decrease,
@@ -168,6 +190,8 @@ class ResultService:
                     "bonus_1": 0,
                     "bonus_2": 0,
                     "bonus_3": 0,
+                    "calculate_status": calc_status,
+                    "calculate_message": calc_message,
                 }
                 batch.append((idx, result))
 
@@ -194,11 +218,16 @@ class ResultService:
                     row_num, error_row = batch[i]
                     log_func(f"❌ Insert failed at row {row_num}: {error_row}")
 
-            log_func("Đang sắp xếp kết quả theo thứ tự hợp lý...")
-            # sorted result
+            log_func("Đang sắp xếp kết quả cho tính toán thưởng...")
+            if sub_step_func:
+                sub_step_func(2)
+            # Sort only valid records for bonus calculation and update sorted_idx
             results: list[Result] = self.repository.get_all()
-            sorted_results: list[Result] = sorted(
-                results,
+            valid_results = [
+                r for r in results if r.calculate_status == "valid" and r.type != -1
+            ]
+            sorted_valid_results: list[Result] = sorted(
+                valid_results,
                 key=lambda result: (
                     result.main_data.customer_code,  # asc
                     result.main_data.branch,  # asc
@@ -211,26 +240,23 @@ class ResultService:
                     -result.non_bonus_increase,  # desc
                 ),
             )
+
+            # Update sorted_idx for FIFO calculation
             batch = []
             total = 0
             batch_size = 100
-            for index, result in enumerate(sorted_results):
+            for index, result in enumerate(sorted_valid_results):
                 result2 = {
                     "id": result.id,
                     "sorted_idx": index,
                 }
-                batch.append((idx, result2))
+                batch.append((index, result2))
 
                 if len(batch) >= batch_size:
                     batch_data = [d for (_, d) in batch]
                     error_indexes = self.repository.bulk_update(batch_data)
                     total += len(batch_data) - len(error_indexes)
                     log_func(f"✅ Đã sắp xếp {total} dòng kết quả...")
-
-                    for i in error_indexes:
-                        row_num, error_row = batch[i]
-                        log_func(f"❌ Update failed at row {row_num}: {error_row}")
-
                     batch.clear()
 
             if batch:
@@ -238,19 +264,13 @@ class ResultService:
                 error_indexes = self.repository.bulk_update(batch_data)
                 total += len(batch_data) - len(error_indexes)
                 log_func(f"✅ Đã sắp xếp {total} dòng kết quả...")
-
-                for i in error_indexes:
-                    row_num, error_row = batch[i]
-                    log_func(f"❌ Update failed at row {row_num}: {error_row}")
-
                 batch.clear()
 
-            # calculate result
+            # calculate result - use sorted valid results for calculation
             log_func("Bắt đầu tính toán kết quả...")
-            results: list[Result] = self.repository.get_all()
-            sorted_results: list[Result] = sorted(
-                results, key=lambda result: (result.sorted_idx)
-            )
+            if sub_step_func:
+                sub_step_func(3)
+            sorted_results = sorted_valid_results
 
             customer_code, branch, seasonal_code, before_remain = "", "", "", []
             batch = []
@@ -270,9 +290,9 @@ class ResultService:
                         [],
                     )
 
-                # Dau ki
+                # Skip empty document numbers
                 number = result.main_data.document_number
-                if number == "" or result.type == -1:
+                if number == "":
                     continue
 
                 (
@@ -376,6 +396,9 @@ class ResultService:
                     log_func(f"❌ Update failed at row {row_num}: {error_row}")
 
                 batch.clear()
+
+            if sub_step_func:
+                sub_step_func(4)
 
         except Exception as e:
             log_func(f"An error occurred: {e}")

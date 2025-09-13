@@ -71,6 +71,13 @@ class StepWidget(QFrame):
         self.status_label = QLabel("Sẵn sàng")
         self.status_label.setStyleSheet("color: #666; font-size: 12px;")
 
+        # Sub-step status label for calculate step
+        self.sub_step_label = QLabel("")
+        self.sub_step_label.setStyleSheet(
+            "color: #888; font-size: 10px; font-style: italic;"
+        )
+        self.sub_step_label.setVisible(False)
+
         # Create status icon labels
         self.status_icon = QLabel("⏳")
         self.status_icon.setStyleSheet("font-size: 12px; border: none;")
@@ -102,11 +109,18 @@ class StepWidget(QFrame):
         )
 
         # Status layout with icons
-        status_layout = QHBoxLayout()
-        status_layout.addWidget(self.status_icon)
-        status_layout.addWidget(self.spin_icon)
-        status_layout.addWidget(self.status_label)
-        status_layout.setSpacing(5)
+        status_layout = QVBoxLayout()
+
+        # Main status row
+        main_status_layout = QHBoxLayout()
+        main_status_layout.addWidget(self.status_icon)
+        main_status_layout.addWidget(self.spin_icon)
+        main_status_layout.addWidget(self.status_label)
+        main_status_layout.setSpacing(5)
+
+        status_layout.addLayout(main_status_layout)
+        status_layout.addWidget(self.sub_step_label)
+        status_layout.setSpacing(2)
 
         action_layout.addLayout(status_layout)
         action_layout.addStretch()
@@ -152,6 +166,7 @@ class StepWidget(QFrame):
             self.status_icon.setVisible(True)
             self.spin_icon.setVisible(False)
             self.status_label.setText(status_text.get(status, status))
+            self.set_sub_step("")  # Clear sub-step when not processing
         self.status_label.setStyleSheet(
             f"color: {status_colors.get(status, '#666')}; font-size: 12px;"
         )
@@ -224,3 +239,28 @@ class StepWidget(QFrame):
         dots = "." * self.dot_count
         self.status_label.setText(f"Đang xử lý{dots}")
         self.dot_count = (self.dot_count % 100) + 1
+
+    def set_sub_step(self, current_step=0):
+        """Set sub-step status for calculate step (1-4)"""
+        if current_step > 0:
+            steps = [
+                "1. Khởi tạo kết quả",
+                "2. Sắp xếp kết quả",
+                "3. Tính toán FIFO",
+                "4. Hoàn tất",
+            ]
+
+            # Build display text with current step highlighted (4 lines)
+            display_lines = []
+            for i, step in enumerate(steps, 1):
+                if i == current_step:
+                    display_lines.append(f"► {step}")
+                elif i < current_step:
+                    display_lines.append(f"✓ {step}")
+                else:
+                    display_lines.append(f"  {step}")
+
+            self.sub_step_label.setText("\n".join(display_lines))
+            self.sub_step_label.setVisible(True)
+        else:
+            self.sub_step_label.setVisible(False)

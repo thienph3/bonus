@@ -205,6 +205,9 @@ class App(QWidget):
         self.calculate_result_worker.log_signal.connect(
             self.right_console.log_with_time
         )
+        self.calculate_result_worker.sub_step_signal.connect(
+            self.central_widget.dashboard_widget.on_calculate_sub_step
+        )
         self.calculate_result_worker.finished.connect(
             self._on_calculate_result_finished
         )

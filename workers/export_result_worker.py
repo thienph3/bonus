@@ -19,7 +19,9 @@ class ExportResultWorker(QObject):
         try:
             self.log_signal.emit("📤 Đang lấy dữ liệu kết quả...")
             results: list[Result] = self.result_service.get_all()
-            results = sorted(results, key=lambda result: (result.sorted_idx))
+            results = sorted(
+                results, key=lambda result: (result.original_idx)
+            )  # Keep original input order
             results = [result.to_dict() for result in results]
 
             self.log_signal.emit("📤 Đang tạo DataFrame...")
