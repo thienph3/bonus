@@ -10,12 +10,12 @@ class CalculateService {
   final _builder = CalculateResultBuilder();
 
   Future<Map<String, dynamic>> calculate(
-    void Function(String) onLog, void Function(int) onSubStep,
+    String runId, void Function(String) onLog, void Function(int) onSubStep,
   ) async {
-    onLog('Load dữ liệu...');
-    final holidays = await _db.select(_db.holidayConfigs).get();
-    final levels = await _db.select(_db.levelConfigs).get();
-    final datas = await _db.select(_db.mainDatas).get();
+    onLog('Load dữ liệu (run: $runId)...');
+    final holidays = await (_db.select(_db.holidayConfigs)..where((t) => t.runId.equals(runId))).get();
+    final levels = await (_db.select(_db.levelConfigs)..where((t) => t.runId.equals(runId))).get();
+    final datas = await (_db.select(_db.mainDatas)..where((t) => t.runId.equals(runId))).get();
 
     final holidaySet = holidays.map((h) => DateTime(h.date.year, h.date.month, h.date.day)).toSet();
     final sortedLevels = List<LevelConfig>.from(levels)
@@ -27,19 +27,19 @@ class CalculateService {
       });
 
     return await _db.transaction(() async {
-      onLog('Xóa kết quả cũ...');
-      await _db.delete(_db.results).go();
-      await _db.delete(_db.matchingDetails).go();
+      onLog('Xóa kết quả cũ của run...');
+      await (_db.delete(_db.matchingDetails)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.results)..where((t) => t.runId.equals(runId))).go();
 
       onLog('Validate & tạo kết quả...');
       onSubStep(1);
       final validated = _builder.validateAndMap(datas, sortedLevels);
-      final resultRows = _builder.buildResultRows(datas, validated, holidaySet);
+      final resultRows = _builder.buildResultRows(datas, validated, holidaySet, runId);
       await _db.batch((b) => b.insertAll(_db.results, resultRows));
 
       onLog('Sắp xếp...');
       onSubStep(2);
-      final validResults = await _getSortedValidResults(datas);
+      final validResults = await _getSortedValidResults(datas, runId);
       await _db.batch((b) {
         for (int i = 0; i < validResults.length; i++) {
           b.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
@@ -50,17 +50,17 @@ class CalculateService {
       onLog('Tính toán FIFO (background)...');
       onSubStep(3);
       final dataMap = {for (final d in datas) d.id: d};
-      final fifo = await _runFifoInIsolate(validResults, dataMap);
+      final fifo = await _runFifoInIsolate(validResults, dataMap, runId);
 
       onLog('Lưu kết quả FIFO...');
       final writer = CalculateWriter(_db);
-      await writer.writeFifoResults(fifo);
+      await writer.writeFifoResults(fifo, runId);
 
       onLog('Pushed: ${fifo.totalPushed}, Consumed: ${fifo.totalConsumed}, Remaining: ${fifo.totalRemaining}');
       final diff = fifo.totalPushed - fifo.totalConsumed - fifo.totalRemaining;
       onLog(diff != 0 ? '⚠️ MISMATCH: $diff' : '✅ Reconciliation OK');
 
-      await writer.updateRunHistory(fifo.totalBonus);
+      await writer.updateRunHistory(runId, fifo.totalBonus);
       onLog('✅ Hoàn tất. Tổng thưởng: ${fifo.totalBonus}');
       onSubStep(4);
       return {
@@ -71,7 +71,7 @@ class CalculateService {
     });
   }
 
-  Future<FifoResult> _runFifoInIsolate(List<Result> results, Map<String, MainData> dataMap) {
+  Future<FifoResult> _runFifoInIsolate(List<Result> results, Map<String, MainData> dataMap, String runId) {
     final sr = results.map((r) => {
       'id': r.id, 'mainDataId': r.mainDataId, 'type': r.type,
       'bonusDecrease': r.bonusDecrease, 'nonBonusDecrease': r.nonBonusDecrease,
@@ -84,12 +84,12 @@ class CalculateService {
       'customerCode': d.customerCode, 'branch': d.branch, 'seasonalCode': d.seasonalCode,
       'documentNumber': d.documentNumber, 'documentDate': d.documentDate?.millisecondsSinceEpoch,
     }));
-    return Isolate.run(() => computeFifo({'results': sr, 'dataMap': sd}));
+    return Isolate.run(() => computeFifo({'results': sr, 'dataMap': sd, 'runId': runId}));
   }
 
-  Future<List<Result>> _getSortedValidResults(List<MainData> datas) async {
+  Future<List<Result>> _getSortedValidResults(List<MainData> datas, String runId) async {
     final all = await (_db.select(_db.results)
-          ..where((r) => r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1))).get();
+          ..where((r) => r.runId.equals(runId) & r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1))).get();
     final dm = {for (final d in datas) d.id: d};
     final valid = all.where((r) => dm.containsKey(r.mainDataId)).toList();
     valid.sort((a, b) {

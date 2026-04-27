@@ -7,7 +7,7 @@ class CalculateWriter {
   final AppDatabase _db;
   CalculateWriter(this._db);
 
-  Future<void> writeFifoResults(FifoResult fifo) async {
+  Future<void> writeFifoResults(FifoResult fifo, String runId) async {
     for (int i = 0; i < fifo.bonusUpdates.length; i += 100) {
       final chunk = fifo.bonusUpdates.sublist(i, (i + 100).clamp(0, fifo.bonusUpdates.length));
       final mChunk = fifo.matchingDetails.where((m) =>
@@ -21,7 +21,7 @@ class CalculateWriter {
         }
         for (final m in mChunk) {
           b.insertAll(_db.matchingDetails, [MatchingDetailsCompanion.insert(
-            id: m['id'], resultId: m['resultId'],
+            id: m['id'], resultId: m['resultId'], runId: Value(runId),
             increaseDocNumber: Value(m['increaseDoc']),
             decreaseDocNumber: Value(m['decreaseDoc']),
             decreaseDate: Value(m['decreaseDate'] != null
@@ -33,13 +33,8 @@ class CalculateWriter {
     }
   }
 
-  Future<void> updateRunHistory(int totalBonus) async {
-    final latest = await (_db.select(_db.runHistories)
-          ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])..limit(1))
-        .getSingleOrNull();
-    if (latest != null) {
-      await (_db.update(_db.runHistories)..where((t) => t.id.equals(latest.id)))
-          .write(RunHistoriesCompanion(totalBonus: Value(totalBonus), status: const Value('completed')));
-    }
+  Future<void> updateRunHistory(String runId, int totalBonus) async {
+    await (_db.update(_db.runHistories)..where((t) => t.id.equals(runId)))
+        .write(RunHistoriesCompanion(totalBonus: Value(totalBonus), status: const Value('completed')));
   }
 }

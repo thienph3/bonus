@@ -79,6 +79,7 @@ class CalculateResultBuilder {
     List<MainData> datas,
     List<ValidatedData> validated,
     Set<DateTime> holidaySet,
+    String runId,
   ) {
     final rows = <ResultsCompanion>[];
     for (int idx = 0; idx < datas.length; idx++) {
@@ -126,6 +127,7 @@ class CalculateResultBuilder {
       rows.add(ResultsCompanion.insert(
         id: _uuid.v4(),
         mainDataId: data.id,
+        runId: Value(runId),
         levelConfigId: Value(v.levelId),
         sortedIdx: Value(0),
         originalIdx: Value(idx),

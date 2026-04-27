@@ -18,6 +18,15 @@ class $HolidayConfigsTable extends HolidayConfigs
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _dateMeta = const VerificationMeta('date');
   @override
   late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
@@ -48,7 +57,7 @@ class $HolidayConfigsTable extends HolidayConfigs
     requiredDuringInsert: false,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, date, name, description];
+  List<GeneratedColumn> get $columns => [id, runId, date, name, description];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -65,6 +74,12 @@ class $HolidayConfigsTable extends HolidayConfigs
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
     }
     if (data.containsKey('date')) {
       context.handle(
@@ -102,6 +117,10 @@ class $HolidayConfigsTable extends HolidayConfigs
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      ),
       date: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}date'],
@@ -125,11 +144,13 @@ class $HolidayConfigsTable extends HolidayConfigs
 
 class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   final String id;
+  final String? runId;
   final DateTime date;
   final String? name;
   final String? description;
   const HolidayConfig({
     required this.id,
+    this.runId,
     required this.date,
     this.name,
     this.description,
@@ -138,6 +159,9 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || runId != null) {
+      map['run_id'] = Variable<String>(runId);
+    }
     map['date'] = Variable<DateTime>(date);
     if (!nullToAbsent || name != null) {
       map['name'] = Variable<String>(name);
@@ -151,6 +175,9 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   HolidayConfigsCompanion toCompanion(bool nullToAbsent) {
     return HolidayConfigsCompanion(
       id: Value(id),
+      runId: runId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(runId),
       date: Value(date),
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       description: description == null && nullToAbsent
@@ -166,6 +193,7 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return HolidayConfig(
       id: serializer.fromJson<String>(json['id']),
+      runId: serializer.fromJson<String?>(json['runId']),
       date: serializer.fromJson<DateTime>(json['date']),
       name: serializer.fromJson<String?>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
@@ -176,6 +204,7 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'runId': serializer.toJson<String?>(runId),
       'date': serializer.toJson<DateTime>(date),
       'name': serializer.toJson<String?>(name),
       'description': serializer.toJson<String?>(description),
@@ -184,11 +213,13 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
 
   HolidayConfig copyWith({
     String? id,
+    Value<String?> runId = const Value.absent(),
     DateTime? date,
     Value<String?> name = const Value.absent(),
     Value<String?> description = const Value.absent(),
   }) => HolidayConfig(
     id: id ?? this.id,
+    runId: runId.present ? runId.value : this.runId,
     date: date ?? this.date,
     name: name.present ? name.value : this.name,
     description: description.present ? description.value : this.description,
@@ -196,6 +227,7 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   HolidayConfig copyWithCompanion(HolidayConfigsCompanion data) {
     return HolidayConfig(
       id: data.id.present ? data.id.value : this.id,
+      runId: data.runId.present ? data.runId.value : this.runId,
       date: data.date.present ? data.date.value : this.date,
       name: data.name.present ? data.name.value : this.name,
       description: data.description.present
@@ -208,6 +240,7 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   String toString() {
     return (StringBuffer('HolidayConfig(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('date: $date, ')
           ..write('name: $name, ')
           ..write('description: $description')
@@ -216,12 +249,13 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
   }
 
   @override
-  int get hashCode => Object.hash(id, date, name, description);
+  int get hashCode => Object.hash(id, runId, date, name, description);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is HolidayConfig &&
           other.id == this.id &&
+          other.runId == this.runId &&
           other.date == this.date &&
           other.name == this.name &&
           other.description == this.description);
@@ -229,12 +263,14 @@ class HolidayConfig extends DataClass implements Insertable<HolidayConfig> {
 
 class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
   final Value<String> id;
+  final Value<String?> runId;
   final Value<DateTime> date;
   final Value<String?> name;
   final Value<String?> description;
   final Value<int> rowid;
   const HolidayConfigsCompanion({
     this.id = const Value.absent(),
+    this.runId = const Value.absent(),
     this.date = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
@@ -242,6 +278,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
   });
   HolidayConfigsCompanion.insert({
     required String id,
+    this.runId = const Value.absent(),
     required DateTime date,
     this.name = const Value.absent(),
     this.description = const Value.absent(),
@@ -250,6 +287,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
        date = Value(date);
   static Insertable<HolidayConfig> custom({
     Expression<String>? id,
+    Expression<String>? runId,
     Expression<DateTime>? date,
     Expression<String>? name,
     Expression<String>? description,
@@ -257,6 +295,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (runId != null) 'run_id': runId,
       if (date != null) 'date': date,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
@@ -266,6 +305,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
 
   HolidayConfigsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? runId,
     Value<DateTime>? date,
     Value<String?>? name,
     Value<String?>? description,
@@ -273,6 +313,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
   }) {
     return HolidayConfigsCompanion(
       id: id ?? this.id,
+      runId: runId ?? this.runId,
       date: date ?? this.date,
       name: name ?? this.name,
       description: description ?? this.description,
@@ -285,6 +326,9 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
     }
     if (date.present) {
       map['date'] = Variable<DateTime>(date.value);
@@ -305,6 +349,7 @@ class HolidayConfigsCompanion extends UpdateCompanion<HolidayConfig> {
   String toString() {
     return (StringBuffer('HolidayConfigsCompanion(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('date: $date, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
@@ -328,6 +373,15 @@ class $LevelConfigsTable extends LevelConfigs
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _seasonalCodeMeta = const VerificationMeta(
     'seasonalCode',
@@ -434,6 +488,7 @@ class $LevelConfigsTable extends LevelConfigs
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    runId,
     seasonalCode,
     salesMethod,
     paymentPeriod,
@@ -460,6 +515,12 @@ class $LevelConfigsTable extends LevelConfigs
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
     }
     if (data.containsKey('seasonal_code')) {
       context.handle(
@@ -567,6 +628,10 @@ class $LevelConfigsTable extends LevelConfigs
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      ),
       seasonalCode: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}seasonal_code'],
@@ -614,6 +679,7 @@ class $LevelConfigsTable extends LevelConfigs
 
 class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   final String id;
+  final String? runId;
   final String seasonalCode;
   final String salesMethod;
   final int paymentPeriod;
@@ -625,6 +691,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   final DateTime? paymentDueDate3;
   const LevelConfig({
     required this.id,
+    this.runId,
     required this.seasonalCode,
     required this.salesMethod,
     required this.paymentPeriod,
@@ -639,6 +706,9 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || runId != null) {
+      map['run_id'] = Variable<String>(runId);
+    }
     map['seasonal_code'] = Variable<String>(seasonalCode);
     map['sales_method'] = Variable<String>(salesMethod);
     map['payment_period'] = Variable<int>(paymentPeriod);
@@ -660,6 +730,9 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   LevelConfigsCompanion toCompanion(bool nullToAbsent) {
     return LevelConfigsCompanion(
       id: Value(id),
+      runId: runId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(runId),
       seasonalCode: Value(seasonalCode),
       salesMethod: Value(salesMethod),
       paymentPeriod: Value(paymentPeriod),
@@ -685,6 +758,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return LevelConfig(
       id: serializer.fromJson<String>(json['id']),
+      runId: serializer.fromJson<String?>(json['runId']),
       seasonalCode: serializer.fromJson<String>(json['seasonalCode']),
       salesMethod: serializer.fromJson<String>(json['salesMethod']),
       paymentPeriod: serializer.fromJson<int>(json['paymentPeriod']),
@@ -701,6 +775,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'runId': serializer.toJson<String?>(runId),
       'seasonalCode': serializer.toJson<String>(seasonalCode),
       'salesMethod': serializer.toJson<String>(salesMethod),
       'paymentPeriod': serializer.toJson<int>(paymentPeriod),
@@ -715,6 +790,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
 
   LevelConfig copyWith({
     String? id,
+    Value<String?> runId = const Value.absent(),
     String? seasonalCode,
     String? salesMethod,
     int? paymentPeriod,
@@ -726,6 +802,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
     Value<DateTime?> paymentDueDate3 = const Value.absent(),
   }) => LevelConfig(
     id: id ?? this.id,
+    runId: runId.present ? runId.value : this.runId,
     seasonalCode: seasonalCode ?? this.seasonalCode,
     salesMethod: salesMethod ?? this.salesMethod,
     paymentPeriod: paymentPeriod ?? this.paymentPeriod,
@@ -745,6 +822,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   LevelConfig copyWithCompanion(LevelConfigsCompanion data) {
     return LevelConfig(
       id: data.id.present ? data.id.value : this.id,
+      runId: data.runId.present ? data.runId.value : this.runId,
       seasonalCode: data.seasonalCode.present
           ? data.seasonalCode.value
           : this.seasonalCode,
@@ -779,6 +857,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   String toString() {
     return (StringBuffer('LevelConfig(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('seasonalCode: $seasonalCode, ')
           ..write('salesMethod: $salesMethod, ')
           ..write('paymentPeriod: $paymentPeriod, ')
@@ -795,6 +874,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
   @override
   int get hashCode => Object.hash(
     id,
+    runId,
     seasonalCode,
     salesMethod,
     paymentPeriod,
@@ -810,6 +890,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
       identical(this, other) ||
       (other is LevelConfig &&
           other.id == this.id &&
+          other.runId == this.runId &&
           other.seasonalCode == this.seasonalCode &&
           other.salesMethod == this.salesMethod &&
           other.paymentPeriod == this.paymentPeriod &&
@@ -823,6 +904,7 @@ class LevelConfig extends DataClass implements Insertable<LevelConfig> {
 
 class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   final Value<String> id;
+  final Value<String?> runId;
   final Value<String> seasonalCode;
   final Value<String> salesMethod;
   final Value<int> paymentPeriod;
@@ -835,6 +917,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   final Value<int> rowid;
   const LevelConfigsCompanion({
     this.id = const Value.absent(),
+    this.runId = const Value.absent(),
     this.seasonalCode = const Value.absent(),
     this.salesMethod = const Value.absent(),
     this.paymentPeriod = const Value.absent(),
@@ -848,6 +931,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   });
   LevelConfigsCompanion.insert({
     required String id,
+    this.runId = const Value.absent(),
     required String seasonalCode,
     required String salesMethod,
     required int paymentPeriod,
@@ -867,6 +951,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
        paymentPeriod3 = Value(paymentPeriod3);
   static Insertable<LevelConfig> custom({
     Expression<String>? id,
+    Expression<String>? runId,
     Expression<String>? seasonalCode,
     Expression<String>? salesMethod,
     Expression<int>? paymentPeriod,
@@ -880,6 +965,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (runId != null) 'run_id': runId,
       if (seasonalCode != null) 'seasonal_code': seasonalCode,
       if (salesMethod != null) 'sales_method': salesMethod,
       if (paymentPeriod != null) 'payment_period': paymentPeriod,
@@ -895,6 +981,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
 
   LevelConfigsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? runId,
     Value<String>? seasonalCode,
     Value<String>? salesMethod,
     Value<int>? paymentPeriod,
@@ -908,6 +995,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   }) {
     return LevelConfigsCompanion(
       id: id ?? this.id,
+      runId: runId ?? this.runId,
       seasonalCode: seasonalCode ?? this.seasonalCode,
       salesMethod: salesMethod ?? this.salesMethod,
       paymentPeriod: paymentPeriod ?? this.paymentPeriod,
@@ -926,6 +1014,9 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
     }
     if (seasonalCode.present) {
       map['seasonal_code'] = Variable<String>(seasonalCode.value);
@@ -964,6 +1055,7 @@ class LevelConfigsCompanion extends UpdateCompanion<LevelConfig> {
   String toString() {
     return (StringBuffer('LevelConfigsCompanion(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('seasonalCode: $seasonalCode, ')
           ..write('salesMethod: $salesMethod, ')
           ..write('paymentPeriod: $paymentPeriod, ')
@@ -993,6 +1085,15 @@ class $MainDatasTable extends MainDatas
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _idxMeta = const VerificationMeta('idx');
   @override
@@ -1178,6 +1279,7 @@ class $MainDatasTable extends MainDatas
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    runId,
     idx,
     documentDate,
     documentNumber,
@@ -1212,6 +1314,12 @@ class $MainDatasTable extends MainDatas
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
     }
     if (data.containsKey('idx')) {
       context.handle(
@@ -1369,6 +1477,10 @@ class $MainDatasTable extends MainDatas
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      ),
       idx: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}idx'],
@@ -1448,6 +1560,7 @@ class $MainDatasTable extends MainDatas
 
 class MainData extends DataClass implements Insertable<MainData> {
   final String id;
+  final String? runId;
   final int? idx;
   final DateTime? documentDate;
   final String? documentNumber;
@@ -1467,6 +1580,7 @@ class MainData extends DataClass implements Insertable<MainData> {
   final String salesMethod;
   const MainData({
     required this.id,
+    this.runId,
     this.idx,
     this.documentDate,
     this.documentNumber,
@@ -1489,6 +1603,9 @@ class MainData extends DataClass implements Insertable<MainData> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || runId != null) {
+      map['run_id'] = Variable<String>(runId);
+    }
     if (!nullToAbsent || idx != null) {
       map['idx'] = Variable<int>(idx);
     }
@@ -1538,6 +1655,9 @@ class MainData extends DataClass implements Insertable<MainData> {
   MainDatasCompanion toCompanion(bool nullToAbsent) {
     return MainDatasCompanion(
       id: Value(id),
+      runId: runId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(runId),
       idx: idx == null && nullToAbsent ? const Value.absent() : Value(idx),
       documentDate: documentDate == null && nullToAbsent
           ? const Value.absent()
@@ -1587,6 +1707,7 @@ class MainData extends DataClass implements Insertable<MainData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MainData(
       id: serializer.fromJson<String>(json['id']),
+      runId: serializer.fromJson<String?>(json['runId']),
       idx: serializer.fromJson<int?>(json['idx']),
       documentDate: serializer.fromJson<DateTime?>(json['documentDate']),
       documentNumber: serializer.fromJson<String?>(json['documentNumber']),
@@ -1613,6 +1734,7 @@ class MainData extends DataClass implements Insertable<MainData> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'runId': serializer.toJson<String?>(runId),
       'idx': serializer.toJson<int?>(idx),
       'documentDate': serializer.toJson<DateTime?>(documentDate),
       'documentNumber': serializer.toJson<String?>(documentNumber),
@@ -1635,6 +1757,7 @@ class MainData extends DataClass implements Insertable<MainData> {
 
   MainData copyWith({
     String? id,
+    Value<String?> runId = const Value.absent(),
     Value<int?> idx = const Value.absent(),
     Value<DateTime?> documentDate = const Value.absent(),
     Value<String?> documentNumber = const Value.absent(),
@@ -1654,6 +1777,7 @@ class MainData extends DataClass implements Insertable<MainData> {
     String? salesMethod,
   }) => MainData(
     id: id ?? this.id,
+    runId: runId.present ? runId.value : this.runId,
     idx: idx.present ? idx.value : this.idx,
     documentDate: documentDate.present ? documentDate.value : this.documentDate,
     documentNumber: documentNumber.present
@@ -1685,6 +1809,7 @@ class MainData extends DataClass implements Insertable<MainData> {
   MainData copyWithCompanion(MainDatasCompanion data) {
     return MainData(
       id: data.id.present ? data.id.value : this.id,
+      runId: data.runId.present ? data.runId.value : this.runId,
       idx: data.idx.present ? data.idx.value : this.idx,
       documentDate: data.documentDate.present
           ? data.documentDate.value
@@ -1731,6 +1856,7 @@ class MainData extends DataClass implements Insertable<MainData> {
   String toString() {
     return (StringBuffer('MainData(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('idx: $idx, ')
           ..write('documentDate: $documentDate, ')
           ..write('documentNumber: $documentNumber, ')
@@ -1755,6 +1881,7 @@ class MainData extends DataClass implements Insertable<MainData> {
   @override
   int get hashCode => Object.hash(
     id,
+    runId,
     idx,
     documentDate,
     documentNumber,
@@ -1778,6 +1905,7 @@ class MainData extends DataClass implements Insertable<MainData> {
       identical(this, other) ||
       (other is MainData &&
           other.id == this.id &&
+          other.runId == this.runId &&
           other.idx == this.idx &&
           other.documentDate == this.documentDate &&
           other.documentNumber == this.documentNumber &&
@@ -1799,6 +1927,7 @@ class MainData extends DataClass implements Insertable<MainData> {
 
 class MainDatasCompanion extends UpdateCompanion<MainData> {
   final Value<String> id;
+  final Value<String?> runId;
   final Value<int?> idx;
   final Value<DateTime?> documentDate;
   final Value<String?> documentNumber;
@@ -1819,6 +1948,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
   final Value<int> rowid;
   const MainDatasCompanion({
     this.id = const Value.absent(),
+    this.runId = const Value.absent(),
     this.idx = const Value.absent(),
     this.documentDate = const Value.absent(),
     this.documentNumber = const Value.absent(),
@@ -1840,6 +1970,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
   });
   MainDatasCompanion.insert({
     required String id,
+    this.runId = const Value.absent(),
     this.idx = const Value.absent(),
     this.documentDate = const Value.absent(),
     this.documentNumber = const Value.absent(),
@@ -1865,6 +1996,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
        salesMethod = Value(salesMethod);
   static Insertable<MainData> custom({
     Expression<String>? id,
+    Expression<String>? runId,
     Expression<int>? idx,
     Expression<DateTime>? documentDate,
     Expression<String>? documentNumber,
@@ -1886,6 +2018,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (runId != null) 'run_id': runId,
       if (idx != null) 'idx': idx,
       if (documentDate != null) 'document_date': documentDate,
       if (documentNumber != null) 'document_number': documentNumber,
@@ -1910,6 +2043,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
 
   MainDatasCompanion copyWith({
     Value<String>? id,
+    Value<String?>? runId,
     Value<int?>? idx,
     Value<DateTime?>? documentDate,
     Value<String?>? documentNumber,
@@ -1931,6 +2065,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
   }) {
     return MainDatasCompanion(
       id: id ?? this.id,
+      runId: runId ?? this.runId,
       idx: idx ?? this.idx,
       documentDate: documentDate ?? this.documentDate,
       documentNumber: documentNumber ?? this.documentNumber,
@@ -1957,6 +2092,9 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
     }
     if (idx.present) {
       map['idx'] = Variable<int>(idx.value);
@@ -2021,6 +2159,7 @@ class MainDatasCompanion extends UpdateCompanion<MainData> {
   String toString() {
     return (StringBuffer('MainDatasCompanion(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('idx: $idx, ')
           ..write('documentDate: $documentDate, ')
           ..write('documentNumber: $documentNumber, ')
@@ -2057,6 +2196,15 @@ class $ResultsTable extends Results with TableInfo<$ResultsTable, Result> {
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _mainDataIdMeta = const VerificationMeta(
     'mainDataId',
@@ -2297,6 +2445,7 @@ class $ResultsTable extends Results with TableInfo<$ResultsTable, Result> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    runId,
     mainDataId,
     levelConfigId,
     sortedIdx,
@@ -2334,6 +2483,12 @@ class $ResultsTable extends Results with TableInfo<$ResultsTable, Result> {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
     }
     if (data.containsKey('main_data_id')) {
       context.handle(
@@ -2515,6 +2670,10 @@ class $ResultsTable extends Results with TableInfo<$ResultsTable, Result> {
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      ),
       mainDataId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}main_data_id'],
@@ -2606,6 +2765,7 @@ class $ResultsTable extends Results with TableInfo<$ResultsTable, Result> {
 
 class Result extends DataClass implements Insertable<Result> {
   final String id;
+  final String? runId;
   final String mainDataId;
   final String? levelConfigId;
   final int sortedIdx;
@@ -2628,6 +2788,7 @@ class Result extends DataClass implements Insertable<Result> {
   final String calculateMessage;
   const Result({
     required this.id,
+    this.runId,
     required this.mainDataId,
     this.levelConfigId,
     required this.sortedIdx,
@@ -2653,6 +2814,9 @@ class Result extends DataClass implements Insertable<Result> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || runId != null) {
+      map['run_id'] = Variable<String>(runId);
+    }
     map['main_data_id'] = Variable<String>(mainDataId);
     if (!nullToAbsent || levelConfigId != null) {
       map['level_config_id'] = Variable<String>(levelConfigId);
@@ -2689,6 +2853,9 @@ class Result extends DataClass implements Insertable<Result> {
   ResultsCompanion toCompanion(bool nullToAbsent) {
     return ResultsCompanion(
       id: Value(id),
+      runId: runId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(runId),
       mainDataId: Value(mainDataId),
       levelConfigId: levelConfigId == null && nullToAbsent
           ? const Value.absent()
@@ -2729,6 +2896,7 @@ class Result extends DataClass implements Insertable<Result> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Result(
       id: serializer.fromJson<String>(json['id']),
+      runId: serializer.fromJson<String?>(json['runId']),
       mainDataId: serializer.fromJson<String>(json['mainDataId']),
       levelConfigId: serializer.fromJson<String?>(json['levelConfigId']),
       sortedIdx: serializer.fromJson<int>(json['sortedIdx']),
@@ -2756,6 +2924,7 @@ class Result extends DataClass implements Insertable<Result> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'runId': serializer.toJson<String?>(runId),
       'mainDataId': serializer.toJson<String>(mainDataId),
       'levelConfigId': serializer.toJson<String?>(levelConfigId),
       'sortedIdx': serializer.toJson<int>(sortedIdx),
@@ -2781,6 +2950,7 @@ class Result extends DataClass implements Insertable<Result> {
 
   Result copyWith({
     String? id,
+    Value<String?> runId = const Value.absent(),
     String? mainDataId,
     Value<String?> levelConfigId = const Value.absent(),
     int? sortedIdx,
@@ -2803,6 +2973,7 @@ class Result extends DataClass implements Insertable<Result> {
     String? calculateMessage,
   }) => Result(
     id: id ?? this.id,
+    runId: runId.present ? runId.value : this.runId,
     mainDataId: mainDataId ?? this.mainDataId,
     levelConfigId: levelConfigId.present
         ? levelConfigId.value
@@ -2837,6 +3008,7 @@ class Result extends DataClass implements Insertable<Result> {
   Result copyWithCompanion(ResultsCompanion data) {
     return Result(
       id: data.id.present ? data.id.value : this.id,
+      runId: data.runId.present ? data.runId.value : this.runId,
       mainDataId: data.mainDataId.present
           ? data.mainDataId.value
           : this.mainDataId,
@@ -2894,6 +3066,7 @@ class Result extends DataClass implements Insertable<Result> {
   String toString() {
     return (StringBuffer('Result(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('mainDataId: $mainDataId, ')
           ..write('levelConfigId: $levelConfigId, ')
           ..write('sortedIdx: $sortedIdx, ')
@@ -2921,6 +3094,7 @@ class Result extends DataClass implements Insertable<Result> {
   @override
   int get hashCode => Object.hashAll([
     id,
+    runId,
     mainDataId,
     levelConfigId,
     sortedIdx,
@@ -2947,6 +3121,7 @@ class Result extends DataClass implements Insertable<Result> {
       identical(this, other) ||
       (other is Result &&
           other.id == this.id &&
+          other.runId == this.runId &&
           other.mainDataId == this.mainDataId &&
           other.levelConfigId == this.levelConfigId &&
           other.sortedIdx == this.sortedIdx &&
@@ -2971,6 +3146,7 @@ class Result extends DataClass implements Insertable<Result> {
 
 class ResultsCompanion extends UpdateCompanion<Result> {
   final Value<String> id;
+  final Value<String?> runId;
   final Value<String> mainDataId;
   final Value<String?> levelConfigId;
   final Value<int> sortedIdx;
@@ -2994,6 +3170,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   final Value<int> rowid;
   const ResultsCompanion({
     this.id = const Value.absent(),
+    this.runId = const Value.absent(),
     this.mainDataId = const Value.absent(),
     this.levelConfigId = const Value.absent(),
     this.sortedIdx = const Value.absent(),
@@ -3018,6 +3195,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   });
   ResultsCompanion.insert({
     required String id,
+    this.runId = const Value.absent(),
     required String mainDataId,
     this.levelConfigId = const Value.absent(),
     this.sortedIdx = const Value.absent(),
@@ -3043,6 +3221,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
        mainDataId = Value(mainDataId);
   static Insertable<Result> custom({
     Expression<String>? id,
+    Expression<String>? runId,
     Expression<String>? mainDataId,
     Expression<String>? levelConfigId,
     Expression<int>? sortedIdx,
@@ -3067,6 +3246,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (runId != null) 'run_id': runId,
       if (mainDataId != null) 'main_data_id': mainDataId,
       if (levelConfigId != null) 'level_config_id': levelConfigId,
       if (sortedIdx != null) 'sorted_idx': sortedIdx,
@@ -3093,6 +3273,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
 
   ResultsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? runId,
     Value<String>? mainDataId,
     Value<String?>? levelConfigId,
     Value<int>? sortedIdx,
@@ -3117,6 +3298,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   }) {
     return ResultsCompanion(
       id: id ?? this.id,
+      runId: runId ?? this.runId,
       mainDataId: mainDataId ?? this.mainDataId,
       levelConfigId: levelConfigId ?? this.levelConfigId,
       sortedIdx: sortedIdx ?? this.sortedIdx,
@@ -3146,6 +3328,9 @@ class ResultsCompanion extends UpdateCompanion<Result> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
     }
     if (mainDataId.present) {
       map['main_data_id'] = Variable<String>(mainDataId.value);
@@ -3217,6 +3402,7 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   String toString() {
     return (StringBuffer('ResultsCompanion(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('mainDataId: $mainDataId, ')
           ..write('levelConfigId: $levelConfigId, ')
           ..write('sortedIdx: $sortedIdx, ')
@@ -3770,6 +3956,15 @@ class $MatchingDetailsTable extends MatchingDetails
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _resultIdMeta = const VerificationMeta(
     'resultId',
   );
@@ -3848,6 +4043,7 @@ class $MatchingDetailsTable extends MatchingDetails
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    runId,
     resultId,
     increaseDocNumber,
     decreaseDocNumber,
@@ -3871,6 +4067,12 @@ class $MatchingDetailsTable extends MatchingDetails
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
       context.missing(_idMeta);
+    }
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
     }
     if (data.containsKey('result_id')) {
       context.handle(
@@ -3935,6 +4137,10 @@ class $MatchingDetailsTable extends MatchingDetails
         DriftSqlType.string,
         data['${effectivePrefix}id'],
       )!,
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      ),
       resultId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}result_id'],
@@ -3970,6 +4176,7 @@ class $MatchingDetailsTable extends MatchingDetails
 
 class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   final String id;
+  final String? runId;
   final String resultId;
   final String increaseDocNumber;
   final String decreaseDocNumber;
@@ -3978,6 +4185,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   final String bonusTier;
   const MatchingDetail({
     required this.id,
+    this.runId,
     required this.resultId,
     required this.increaseDocNumber,
     required this.decreaseDocNumber,
@@ -3989,6 +4197,9 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<String>(id);
+    if (!nullToAbsent || runId != null) {
+      map['run_id'] = Variable<String>(runId);
+    }
     map['result_id'] = Variable<String>(resultId);
     map['increase_doc_number'] = Variable<String>(increaseDocNumber);
     map['decrease_doc_number'] = Variable<String>(decreaseDocNumber);
@@ -4003,6 +4214,9 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   MatchingDetailsCompanion toCompanion(bool nullToAbsent) {
     return MatchingDetailsCompanion(
       id: Value(id),
+      runId: runId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(runId),
       resultId: Value(resultId),
       increaseDocNumber: Value(increaseDocNumber),
       decreaseDocNumber: Value(decreaseDocNumber),
@@ -4021,6 +4235,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MatchingDetail(
       id: serializer.fromJson<String>(json['id']),
+      runId: serializer.fromJson<String?>(json['runId']),
       resultId: serializer.fromJson<String>(json['resultId']),
       increaseDocNumber: serializer.fromJson<String>(json['increaseDocNumber']),
       decreaseDocNumber: serializer.fromJson<String>(json['decreaseDocNumber']),
@@ -4034,6 +4249,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<String>(id),
+      'runId': serializer.toJson<String?>(runId),
       'resultId': serializer.toJson<String>(resultId),
       'increaseDocNumber': serializer.toJson<String>(increaseDocNumber),
       'decreaseDocNumber': serializer.toJson<String>(decreaseDocNumber),
@@ -4045,6 +4261,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
 
   MatchingDetail copyWith({
     String? id,
+    Value<String?> runId = const Value.absent(),
     String? resultId,
     String? increaseDocNumber,
     String? decreaseDocNumber,
@@ -4053,6 +4270,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
     String? bonusTier,
   }) => MatchingDetail(
     id: id ?? this.id,
+    runId: runId.present ? runId.value : this.runId,
     resultId: resultId ?? this.resultId,
     increaseDocNumber: increaseDocNumber ?? this.increaseDocNumber,
     decreaseDocNumber: decreaseDocNumber ?? this.decreaseDocNumber,
@@ -4063,6 +4281,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   MatchingDetail copyWithCompanion(MatchingDetailsCompanion data) {
     return MatchingDetail(
       id: data.id.present ? data.id.value : this.id,
+      runId: data.runId.present ? data.runId.value : this.runId,
       resultId: data.resultId.present ? data.resultId.value : this.resultId,
       increaseDocNumber: data.increaseDocNumber.present
           ? data.increaseDocNumber.value
@@ -4084,6 +4303,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   String toString() {
     return (StringBuffer('MatchingDetail(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('resultId: $resultId, ')
           ..write('increaseDocNumber: $increaseDocNumber, ')
           ..write('decreaseDocNumber: $decreaseDocNumber, ')
@@ -4097,6 +4317,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
   @override
   int get hashCode => Object.hash(
     id,
+    runId,
     resultId,
     increaseDocNumber,
     decreaseDocNumber,
@@ -4109,6 +4330,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
       identical(this, other) ||
       (other is MatchingDetail &&
           other.id == this.id &&
+          other.runId == this.runId &&
           other.resultId == this.resultId &&
           other.increaseDocNumber == this.increaseDocNumber &&
           other.decreaseDocNumber == this.decreaseDocNumber &&
@@ -4119,6 +4341,7 @@ class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
 
 class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   final Value<String> id;
+  final Value<String?> runId;
   final Value<String> resultId;
   final Value<String> increaseDocNumber;
   final Value<String> decreaseDocNumber;
@@ -4128,6 +4351,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   final Value<int> rowid;
   const MatchingDetailsCompanion({
     this.id = const Value.absent(),
+    this.runId = const Value.absent(),
     this.resultId = const Value.absent(),
     this.increaseDocNumber = const Value.absent(),
     this.decreaseDocNumber = const Value.absent(),
@@ -4138,6 +4362,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   });
   MatchingDetailsCompanion.insert({
     required String id,
+    this.runId = const Value.absent(),
     required String resultId,
     this.increaseDocNumber = const Value.absent(),
     this.decreaseDocNumber = const Value.absent(),
@@ -4149,6 +4374,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
        resultId = Value(resultId);
   static Insertable<MatchingDetail> custom({
     Expression<String>? id,
+    Expression<String>? runId,
     Expression<String>? resultId,
     Expression<String>? increaseDocNumber,
     Expression<String>? decreaseDocNumber,
@@ -4159,6 +4385,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (runId != null) 'run_id': runId,
       if (resultId != null) 'result_id': resultId,
       if (increaseDocNumber != null) 'increase_doc_number': increaseDocNumber,
       if (decreaseDocNumber != null) 'decrease_doc_number': decreaseDocNumber,
@@ -4171,6 +4398,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
 
   MatchingDetailsCompanion copyWith({
     Value<String>? id,
+    Value<String?>? runId,
     Value<String>? resultId,
     Value<String>? increaseDocNumber,
     Value<String>? decreaseDocNumber,
@@ -4181,6 +4409,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   }) {
     return MatchingDetailsCompanion(
       id: id ?? this.id,
+      runId: runId ?? this.runId,
       resultId: resultId ?? this.resultId,
       increaseDocNumber: increaseDocNumber ?? this.increaseDocNumber,
       decreaseDocNumber: decreaseDocNumber ?? this.decreaseDocNumber,
@@ -4196,6 +4425,9 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<String>(id.value);
+    }
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
     }
     if (resultId.present) {
       map['result_id'] = Variable<String>(resultId.value);
@@ -4225,6 +4457,7 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   String toString() {
     return (StringBuffer('MatchingDetailsCompanion(')
           ..write('id: $id, ')
+          ..write('runId: $runId, ')
           ..write('resultId: $resultId, ')
           ..write('increaseDocNumber: $increaseDocNumber, ')
           ..write('decreaseDocNumber: $decreaseDocNumber, ')
@@ -4265,6 +4498,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$HolidayConfigsTableCreateCompanionBuilder =
     HolidayConfigsCompanion Function({
       required String id,
+      Value<String?> runId,
       required DateTime date,
       Value<String?> name,
       Value<String?> description,
@@ -4273,6 +4507,7 @@ typedef $$HolidayConfigsTableCreateCompanionBuilder =
 typedef $$HolidayConfigsTableUpdateCompanionBuilder =
     HolidayConfigsCompanion Function({
       Value<String> id,
+      Value<String?> runId,
       Value<DateTime> date,
       Value<String?> name,
       Value<String?> description,
@@ -4290,6 +4525,11 @@ class $$HolidayConfigsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4323,6 +4563,11 @@ class $$HolidayConfigsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get date => $composableBuilder(
     column: $table.date,
     builder: (column) => ColumnOrderings(column),
@@ -4350,6 +4595,9 @@ class $$HolidayConfigsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
 
   GeneratedColumn<DateTime> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
@@ -4397,12 +4645,14 @@ class $$HolidayConfigsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> runId = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<String?> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HolidayConfigsCompanion(
                 id: id,
+                runId: runId,
                 date: date,
                 name: name,
                 description: description,
@@ -4411,12 +4661,14 @@ class $$HolidayConfigsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> runId = const Value.absent(),
                 required DateTime date,
                 Value<String?> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HolidayConfigsCompanion.insert(
                 id: id,
+                runId: runId,
                 date: date,
                 name: name,
                 description: description,
@@ -4450,6 +4702,7 @@ typedef $$HolidayConfigsTableProcessedTableManager =
 typedef $$LevelConfigsTableCreateCompanionBuilder =
     LevelConfigsCompanion Function({
       required String id,
+      Value<String?> runId,
       required String seasonalCode,
       required String salesMethod,
       required int paymentPeriod,
@@ -4464,6 +4717,7 @@ typedef $$LevelConfigsTableCreateCompanionBuilder =
 typedef $$LevelConfigsTableUpdateCompanionBuilder =
     LevelConfigsCompanion Function({
       Value<String> id,
+      Value<String?> runId,
       Value<String> seasonalCode,
       Value<String> salesMethod,
       Value<int> paymentPeriod,
@@ -4514,6 +4768,11 @@ class $$LevelConfigsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4602,6 +4861,11 @@ class $$LevelConfigsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get seasonalCode => $composableBuilder(
     column: $table.seasonalCode,
     builder: (column) => ColumnOrderings(column),
@@ -4659,6 +4923,9 @@ class $$LevelConfigsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
 
   GeneratedColumn<String> get seasonalCode => $composableBuilder(
     column: $table.seasonalCode,
@@ -4760,6 +5027,7 @@ class $$LevelConfigsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> runId = const Value.absent(),
                 Value<String> seasonalCode = const Value.absent(),
                 Value<String> salesMethod = const Value.absent(),
                 Value<int> paymentPeriod = const Value.absent(),
@@ -4772,6 +5040,7 @@ class $$LevelConfigsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LevelConfigsCompanion(
                 id: id,
+                runId: runId,
                 seasonalCode: seasonalCode,
                 salesMethod: salesMethod,
                 paymentPeriod: paymentPeriod,
@@ -4786,6 +5055,7 @@ class $$LevelConfigsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> runId = const Value.absent(),
                 required String seasonalCode,
                 required String salesMethod,
                 required int paymentPeriod,
@@ -4798,6 +5068,7 @@ class $$LevelConfigsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => LevelConfigsCompanion.insert(
                 id: id,
+                runId: runId,
                 seasonalCode: seasonalCode,
                 salesMethod: salesMethod,
                 paymentPeriod: paymentPeriod,
@@ -4870,6 +5141,7 @@ typedef $$LevelConfigsTableProcessedTableManager =
 typedef $$MainDatasTableCreateCompanionBuilder =
     MainDatasCompanion Function({
       required String id,
+      Value<String?> runId,
       Value<int?> idx,
       Value<DateTime?> documentDate,
       Value<String?> documentNumber,
@@ -4892,6 +5164,7 @@ typedef $$MainDatasTableCreateCompanionBuilder =
 typedef $$MainDatasTableUpdateCompanionBuilder =
     MainDatasCompanion Function({
       Value<String> id,
+      Value<String?> runId,
       Value<int?> idx,
       Value<DateTime?> documentDate,
       Value<String?> documentNumber,
@@ -4947,6 +5220,11 @@ class $$MainDatasTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5075,6 +5353,11 @@ class $$MainDatasTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get idx => $composableBuilder(
     column: $table.idx,
     builder: (column) => ColumnOrderings(column),
@@ -5172,6 +5455,9 @@ class $$MainDatasTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
 
   GeneratedColumn<int> get idx =>
       $composableBuilder(column: $table.idx, builder: (column) => column);
@@ -5301,6 +5587,7 @@ class $$MainDatasTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> runId = const Value.absent(),
                 Value<int?> idx = const Value.absent(),
                 Value<DateTime?> documentDate = const Value.absent(),
                 Value<String?> documentNumber = const Value.absent(),
@@ -5321,6 +5608,7 @@ class $$MainDatasTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MainDatasCompanion(
                 id: id,
+                runId: runId,
                 idx: idx,
                 documentDate: documentDate,
                 documentNumber: documentNumber,
@@ -5343,6 +5631,7 @@ class $$MainDatasTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> runId = const Value.absent(),
                 Value<int?> idx = const Value.absent(),
                 Value<DateTime?> documentDate = const Value.absent(),
                 Value<String?> documentNumber = const Value.absent(),
@@ -5363,6 +5652,7 @@ class $$MainDatasTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MainDatasCompanion.insert(
                 id: id,
+                runId: runId,
                 idx: idx,
                 documentDate: documentDate,
                 documentNumber: documentNumber,
@@ -5437,6 +5727,7 @@ typedef $$MainDatasTableProcessedTableManager =
 typedef $$ResultsTableCreateCompanionBuilder =
     ResultsCompanion Function({
       required String id,
+      Value<String?> runId,
       required String mainDataId,
       Value<String?> levelConfigId,
       Value<int> sortedIdx,
@@ -5462,6 +5753,7 @@ typedef $$ResultsTableCreateCompanionBuilder =
 typedef $$ResultsTableUpdateCompanionBuilder =
     ResultsCompanion Function({
       Value<String> id,
+      Value<String?> runId,
       Value<String> mainDataId,
       Value<String?> levelConfigId,
       Value<int> sortedIdx,
@@ -5559,6 +5851,11 @@ class $$ResultsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5738,6 +6035,11 @@ class $$ResultsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortedIdx => $composableBuilder(
     column: $table.sortedIdx,
     builder: (column) => ColumnOrderings(column),
@@ -5886,6 +6188,9 @@ class $$ResultsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
 
   GeneratedColumn<int> get sortedIdx =>
       $composableBuilder(column: $table.sortedIdx, builder: (column) => column);
@@ -6072,6 +6377,7 @@ class $$ResultsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> runId = const Value.absent(),
                 Value<String> mainDataId = const Value.absent(),
                 Value<String?> levelConfigId = const Value.absent(),
                 Value<int> sortedIdx = const Value.absent(),
@@ -6095,6 +6401,7 @@ class $$ResultsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ResultsCompanion(
                 id: id,
+                runId: runId,
                 mainDataId: mainDataId,
                 levelConfigId: levelConfigId,
                 sortedIdx: sortedIdx,
@@ -6120,6 +6427,7 @@ class $$ResultsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> runId = const Value.absent(),
                 required String mainDataId,
                 Value<String?> levelConfigId = const Value.absent(),
                 Value<int> sortedIdx = const Value.absent(),
@@ -6143,6 +6451,7 @@ class $$ResultsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => ResultsCompanion.insert(
                 id: id,
+                runId: runId,
                 mainDataId: mainDataId,
                 levelConfigId: levelConfigId,
                 sortedIdx: sortedIdx,
@@ -6546,6 +6855,7 @@ typedef $$RunHistoriesTableProcessedTableManager =
 typedef $$MatchingDetailsTableCreateCompanionBuilder =
     MatchingDetailsCompanion Function({
       required String id,
+      Value<String?> runId,
       required String resultId,
       Value<String> increaseDocNumber,
       Value<String> decreaseDocNumber,
@@ -6557,6 +6867,7 @@ typedef $$MatchingDetailsTableCreateCompanionBuilder =
 typedef $$MatchingDetailsTableUpdateCompanionBuilder =
     MatchingDetailsCompanion Function({
       Value<String> id,
+      Value<String?> runId,
       Value<String> resultId,
       Value<String> increaseDocNumber,
       Value<String> decreaseDocNumber,
@@ -6606,6 +6917,11 @@ class $$MatchingDetailsTableFilterComposer
   });
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6672,6 +6988,11 @@ class $$MatchingDetailsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get increaseDocNumber => $composableBuilder(
     column: $table.increaseDocNumber,
     builder: (column) => ColumnOrderings(column),
@@ -6732,6 +7053,9 @@ class $$MatchingDetailsTableAnnotationComposer
   });
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
 
   GeneratedColumn<String> get increaseDocNumber => $composableBuilder(
     column: $table.increaseDocNumber,
@@ -6811,6 +7135,7 @@ class $$MatchingDetailsTableTableManager
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
+                Value<String?> runId = const Value.absent(),
                 Value<String> resultId = const Value.absent(),
                 Value<String> increaseDocNumber = const Value.absent(),
                 Value<String> decreaseDocNumber = const Value.absent(),
@@ -6820,6 +7145,7 @@ class $$MatchingDetailsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MatchingDetailsCompanion(
                 id: id,
+                runId: runId,
                 resultId: resultId,
                 increaseDocNumber: increaseDocNumber,
                 decreaseDocNumber: decreaseDocNumber,
@@ -6831,6 +7157,7 @@ class $$MatchingDetailsTableTableManager
           createCompanionCallback:
               ({
                 required String id,
+                Value<String?> runId = const Value.absent(),
                 required String resultId,
                 Value<String> increaseDocNumber = const Value.absent(),
                 Value<String> decreaseDocNumber = const Value.absent(),
@@ -6840,6 +7167,7 @@ class $$MatchingDetailsTableTableManager
                 Value<int> rowid = const Value.absent(),
               }) => MatchingDetailsCompanion.insert(
                 id: id,
+                runId: runId,
                 resultId: resultId,
                 increaseDocNumber: increaseDocNumber,
                 decreaseDocNumber: decreaseDocNumber,

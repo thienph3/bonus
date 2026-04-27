@@ -4,18 +4,20 @@ import 'package:uuid/uuid.dart';
 import '../../core/utils/parse_utils.dart';
 
 /// Pure function: parse Excel bytes into raw Maps. Runs in isolate.
-Map<String, dynamic> parseExcelBytes(Uint8List bytes) {
+Map<String, dynamic> parseExcelBytes(Map<String, dynamic> input) {
+  final bytes = input['bytes'] as Uint8List;
+  final runId = input['runId'] as String;
   const uuid = Uuid();
   final excel = Excel.decodeBytes(bytes);
 
   return {
-    'holidays': _parseHolidays(excel, uuid),
-    'levels': _parseLevels(excel, uuid),
-    'mainData': _parseMainData(excel, uuid),
+    'holidays': _parseHolidays(excel, uuid, runId),
+    'levels': _parseLevels(excel, uuid, runId),
+    'mainData': _parseMainData(excel, uuid, runId),
   };
 }
 
-List<Map<String, dynamic>> _parseHolidays(Excel excel, Uuid uuid) {
+List<Map<String, dynamic>> _parseHolidays(Excel excel, Uuid uuid, String runId) {
   final sheet = excel.tables['holiday_config'];
   if (sheet == null) return [];
   final rows = <Map<String, dynamic>>[];
@@ -24,12 +26,12 @@ List<Map<String, dynamic>> _parseHolidays(Excel excel, Uuid uuid) {
     if (row.isEmpty || row[0]?.value == null) continue;
     final date = parseDate(row[0]?.value);
     if (date == null) continue;
-    rows.add({'id': uuid.v4(), 'date': date.millisecondsSinceEpoch});
+    rows.add({'id': uuid.v4(), 'runId': runId, 'date': date.millisecondsSinceEpoch});
   }
   return rows;
 }
 
-List<Map<String, dynamic>> _parseLevels(Excel excel, Uuid uuid) {
+List<Map<String, dynamic>> _parseLevels(Excel excel, Uuid uuid, String runId) {
   final sheet = excel.tables['level_config'];
   if (sheet == null) return [];
   final rows = <Map<String, dynamic>>[];
@@ -38,7 +40,7 @@ List<Map<String, dynamic>> _parseLevels(Excel excel, Uuid uuid) {
     if (row.isEmpty || row[0]?.value == null) continue;
     try {
       rows.add({
-        'id': uuid.v4(),
+        'id': uuid.v4(), 'runId': runId,
         'seasonalCode': row[0]?.value?.toString() ?? '',
         'salesMethod': row[1]?.value?.toString() ?? '',
         'paymentPeriod': parseNumber(row[2]?.value) ?? 0,
@@ -54,7 +56,7 @@ List<Map<String, dynamic>> _parseLevels(Excel excel, Uuid uuid) {
   return rows;
 }
 
-List<Map<String, dynamic>> _parseMainData(Excel excel, Uuid uuid) {
+List<Map<String, dynamic>> _parseMainData(Excel excel, Uuid uuid, String runId) {
   final sheet = excel.tables['Data'];
   if (sheet == null) return [];
 
@@ -72,7 +74,7 @@ List<Map<String, dynamic>> _parseMainData(Excel excel, Uuid uuid) {
     if (row.every((c) => c?.value == null || c!.value.toString().trim().isEmpty)) break;
     try {
       rows.add({
-        'id': uuid.v4(),
+        'id': uuid.v4(), 'runId': runId,
         'idx': parseNumber(row[0]?.value),
         'documentDate': parseDate(row[1]?.value)?.millisecondsSinceEpoch,
         'documentNumber': row[2]?.value?.toString(),

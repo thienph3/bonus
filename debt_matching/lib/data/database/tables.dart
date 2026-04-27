@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class HolidayConfigs extends Table {
   TextColumn get id => text()();
+  TextColumn get runId => text().nullable()();
   DateTimeColumn get date => dateTime()();
   TextColumn get name => text().nullable()();
   TextColumn get description => text().nullable()();
@@ -12,6 +13,7 @@ class HolidayConfigs extends Table {
 
 class LevelConfigs extends Table {
   TextColumn get id => text()();
+  TextColumn get runId => text().nullable()();
   TextColumn get seasonalCode => text()();
   TextColumn get salesMethod => text()();
   IntColumn get paymentPeriod => integer()();
@@ -28,6 +30,7 @@ class LevelConfigs extends Table {
 
 class MainDatas extends Table {
   TextColumn get id => text()();
+  TextColumn get runId => text().nullable()();
   IntColumn get idx => integer().nullable()();
   DateTimeColumn get documentDate => dateTime().nullable()();
   TextColumn get documentNumber => text().nullable()();
@@ -52,9 +55,9 @@ class MainDatas extends Table {
 
 class Results extends Table {
   TextColumn get id => text()();
+  TextColumn get runId => text().nullable()();
   TextColumn get mainDataId => text().references(MainDatas, #id)();
-  TextColumn get levelConfigId =>
-      text().nullable().references(LevelConfigs, #id)();
+  TextColumn get levelConfigId => text().nullable().references(LevelConfigs, #id)();
   IntColumn get sortedIdx => integer().withDefault(const Constant(0))();
   IntColumn get originalIdx => integer().withDefault(const Constant(0))();
   IntColumn get type => integer().withDefault(const Constant(0))();
@@ -69,14 +72,10 @@ class Results extends Table {
   IntColumn get bonus1 => integer().withDefault(const Constant(0))();
   IntColumn get bonus2 => integer().withDefault(const Constant(0))();
   IntColumn get bonus3 => integer().withDefault(const Constant(0))();
-  TextColumn get beforeRemain =>
-      text().withDefault(const Constant(''))();
-  TextColumn get afterRemain =>
-      text().withDefault(const Constant(''))();
-  TextColumn get calculateStatus =>
-      text().withDefault(const Constant('valid'))();
-  TextColumn get calculateMessage =>
-      text().withDefault(const Constant(''))();
+  TextColumn get beforeRemain => text().withDefault(const Constant(''))();
+  TextColumn get afterRemain => text().withDefault(const Constant(''))();
+  TextColumn get calculateStatus => text().withDefault(const Constant('valid'))();
+  TextColumn get calculateMessage => text().withDefault(const Constant(''))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -98,6 +97,7 @@ class RunHistories extends Table {
 
 class MatchingDetails extends Table {
   TextColumn get id => text()();
+  TextColumn get runId => text().nullable()();
   TextColumn get resultId => text().references(Results, #id)();
   TextColumn get increaseDocNumber => text().withDefault(const Constant(''))();
   TextColumn get decreaseDocNumber => text().withDefault(const Constant(''))();

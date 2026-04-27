@@ -22,7 +22,20 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase._();
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await customStatement('ALTER TABLE holiday_configs ADD COLUMN run_id TEXT');
+        await customStatement('ALTER TABLE level_configs ADD COLUMN run_id TEXT');
+        await customStatement('ALTER TABLE main_datas ADD COLUMN run_id TEXT');
+        await customStatement('ALTER TABLE results ADD COLUMN run_id TEXT');
+        await customStatement('ALTER TABLE matching_details ADD COLUMN run_id TEXT');
+      }
+    },
+  );
 }
 
 LazyDatabase _openConnection() {

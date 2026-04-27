@@ -6,16 +6,15 @@ import 'export_builder.dart';
 class ExportService {
   final AppDatabase _db = AppDatabase.instance;
 
-  Future<void> exportToExcel(String filePath, void Function(String) onLog) async {
+  Future<void> exportToExcel(String runId, String filePath, void Function(String) onLog) async {
     onLog('📤 Đang lấy dữ liệu...');
-    final results = await _db.select(_db.results).get();
-    final mainDatas = await _db.select(_db.mainDatas).get();
-    final matchings = await _db.select(_db.matchingDetails).get();
+    final results = await (_db.select(_db.results)..where((t) => t.runId.equals(runId))).get();
+    final mainDatas = await (_db.select(_db.mainDatas)..where((t) => t.runId.equals(runId))).get();
+    final matchings = await (_db.select(_db.matchingDetails)..where((t) => t.runId.equals(runId))).get();
     final dataMap = {for (final d in mainDatas) d.id: d};
 
     results.sort((a, b) => a.originalIdx.compareTo(b.originalIdx));
 
-    // Serialize to Maps for isolate
     final serialResults = results.map((r) {
       final d = dataMap[r.mainDataId];
       return {
@@ -43,14 +42,20 @@ class ExportService {
     }).toList();
 
     onLog('📤 Tạo Excel (background)...');
-    final bytes = await Isolate.run(() => buildExcelBytes({
-      'results': serialResults, 'matchings': serialMatchings,
-    }));
+    final bytes = await Isolate.run(() => buildExcelBytes({'results': serialResults, 'matchings': serialMatchings}));
 
     onLog('📤 Lưu file...');
-    if (bytes != null && bytes.isNotEmpty) {
-      await File(filePath).writeAsBytes(bytes);
-    }
+    if (bytes != null && bytes.isNotEmpty) await File(filePath).writeAsBytes(bytes);
     onLog('✅ Đã xuất ${results.length} dòng + ${matchings.length} chi tiết đối trừ.');
+  }
+
+  /// Delete a run and all its data
+  Future<void> deleteRun(String runId) async {
+    await (_db.delete(_db.matchingDetails)..where((t) => t.runId.equals(runId))).go();
+    await (_db.delete(_db.results)..where((t) => t.runId.equals(runId))).go();
+    await (_db.delete(_db.mainDatas)..where((t) => t.runId.equals(runId))).go();
+    await (_db.delete(_db.levelConfigs)..where((t) => t.runId.equals(runId))).go();
+    await (_db.delete(_db.holidayConfigs)..where((t) => t.runId.equals(runId))).go();
+    await (_db.delete(_db.runHistories)..where((t) => t.id.equals(runId))).go();
   }
 }
