@@ -10,13 +10,27 @@ Hướng dẫn build ứng dụng thành file thực thi duy nhất (.exe) sử 
 ## Build Steps
 
 ### 1. Build với resources (bắt buộc)
+
+**Windows:**
 ```bash
 pyinstaller --onefile --windowed --name="BonusCalculator" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
 ```
 
-### 2. Build với icon
+**Linux/macOS:**
 ```bash
-pyinstaller --onefile --windowed --name="BonusCalculator" --icon="assets/bonus_app.png" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
+pyinstaller --onefile --windowed --name="BonusCalculator" --add-data="themes:themes" --add-data="assets:assets" --add-data="database.db:." app.py
+```
+
+### 2. Build với icon
+
+**Windows:**
+```bash
+pyinstaller --onefile --windowed --name="BonusCalculator" --icon="assets/calculate_icon.png" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
+```
+
+**Linux/macOS:**
+```bash
+pyinstaller --onefile --windowed --name="BonusCalculator" --icon="assets/calculate_icon.png" --add-data="themes:themes" --add-data="assets:assets" --add-data="database.db:." app.py
 ```
 
 ## Build Options
@@ -34,6 +48,27 @@ File thực thi sẽ được tạo trong thư mục `dist/`:
 - `dist/BonusCalculator` (Linux/macOS)
 
 ## Troubleshooting
+
+### PyInstaller command not found (Windows)
+Nếu báo lỗi "pyinstaller is not recognized":
+
+**Option 1: Sử dụng python -m**
+```bash
+python -m PyInstaller --onefile --windowed --name="BonusCalculator" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
+```
+
+**Option 2: Thêm Scripts vào PATH**
+```bash
+# Tìm đường dẫn Scripts folder
+pip show pyinstaller
+# Thêm C:\Python\Scripts vào PATH environment variable
+```
+
+**Option 3: Chạy từ virtual environment**
+```bash
+env\Scripts\activate
+pyinstaller --onefile --windowed --name="BonusCalculator" --add-data="themes;themes" --add-data="assets;assets" --add-data="database.db;." app.py
+```
 
 ### Missing modules
 Nếu thiếu modules, thêm vào spec file:
