@@ -1,122 +1,89 @@
-import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
-import '../database/app_database.dart';
 
 const _uuid = Uuid();
 
 class FifoResult {
-  final int totalBonus;
-  final int totalConsumed;
-  final int totalRemaining;
-  final int totalPushed;
-  FifoResult({required this.totalBonus, required this.totalConsumed, required this.totalRemaining, required this.totalPushed});
+  final int totalBonus, totalConsumed, totalRemaining, totalPushed;
+  final List<Map<String, dynamic>> bonusUpdates;
+  final List<Map<String, dynamic>> matchingDetails;
+  FifoResult({required this.totalBonus, required this.totalConsumed,
+    required this.totalRemaining, required this.totalPushed,
+    required this.bonusUpdates, required this.matchingDetails});
 }
 
-/// FIFO stack bonus calculation logic
-class CalculateFifo {
-  final AppDatabase _db;
-  CalculateFifo(this._db);
+/// Pure FIFO computation. Input/output are plain Maps — isolate-safe.
+FifoResult computeFifo(Map<String, dynamic> input) {
+  final results = input['results'] as List<Map<String, dynamic>>;
+  final dataMap = input['dataMap'] as Map<String, Map<String, dynamic>>;
 
-  Future<FifoResult> run(
-    List<Result> results, Map<String, MainData> dataMap, void Function(String) onLog,
-  ) async {
-    String curCust = '', curBranch = '', curSeason = '';
-    List<Map<String, dynamic>> stack = [];
-    int totalBonus = 0, totalConsumed = 0, totalPushed = 0;
-    var updates = <_BonusUpdate>[];
-    var matchings = <MatchingDetailsCompanion>[];
+  String curCust = '', curBranch = '', curSeason = '';
+  List<Map<String, dynamic>> stack = [];
+  int totalBonus = 0, totalConsumed = 0, totalPushed = 0;
+  final bonusUpdates = <Map<String, dynamic>>[];
+  final matchings = <Map<String, dynamic>>[];
 
-    for (int i = 0; i < results.length; i++) {
-      final r = results[i];
-      final data = dataMap[r.mainDataId]!;
+  for (final r in results) {
+    final data = dataMap[r['mainDataId']]!;
+    final custCode = data['customerCode'] as String;
+    final branch = data['branch'] as String;
+    final seasonal = data['seasonalCode'] as String;
 
-      if (curCust != data.customerCode || curBranch != data.branch || curSeason != data.seasonalCode) {
-        curCust = data.customerCode;
-        curBranch = data.branch;
-        curSeason = data.seasonalCode;
-        stack = [];
-      }
-      if (data.documentNumber == null || data.documentNumber!.isEmpty) continue;
+    if (curCust != custCode || curBranch != branch || curSeason != seasonal) {
+      curCust = custCode; curBranch = branch; curSeason = seasonal; stack = [];
+    }
 
-      final beforeStr = stack.toString();
-      int b1 = 0, b2 = 0, b3 = 0;
+    final docNum = data['documentNumber'] as String?;
+    if (docNum == null || docNum.isEmpty) continue;
 
-      if (r.type == 0) {
-        final amt = r.bonusDecrease > 0 ? r.bonusDecrease : r.nonBonusDecrease;
-        stack.add({
-          'sub_type': r.bonusDecrease > 0 ? 'bonus' : 'non_bonus',
-          'amount': amt, 'date': data.documentDate, 'doc': data.documentNumber,
-        });
-        totalPushed += amt;
-      } else if (r.type == 1) {
-        int amount = r.bonusIncrease > 0 ? r.bonusIncrease : r.nonBonusIncrease;
-        final isBonus = r.bonusIncrease > 0;
-        while (amount > 0 && stack.isNotEmpty) {
-          final first = stack[0];
-          final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
-          amount -= mi;
-          first['amount'] = (first['amount'] as int) - mi;
-          totalConsumed += mi;
-          String tier = 'none';
+    final beforeStr = stack.toString();
+    int b1 = 0, b2 = 0, b3 = 0;
+    final type = r['type'] as int;
+    final bonusDec = r['bonusDecrease'] as int;
+    final nonBonusDec = r['nonBonusDecrease'] as int;
+    final bonusInc = r['bonusIncrease'] as int;
+    final nonBonusInc = r['nonBonusIncrease'] as int;
 
-          if (isBonus && first['sub_type'] == 'bonus' && first['date'] != null) {
-            final d = first['date'] as DateTime;
-            if (r.paymentDueDate1 != null && !d.isAfter(r.paymentDueDate1!)) {
-              b1 += mi; tier = 'bonus_1';
-            } else if (r.paymentDueDate2 != null && !d.isAfter(r.paymentDueDate2!)) {
-              b2 += mi; tier = 'bonus_2';
-            } else if (r.paymentDueDate3 != null && !d.isAfter(r.paymentDueDate3!)) {
-              b3 += mi; tier = 'bonus_3';
-            }
-          }
+    if (type == 0) {
+      final amt = bonusDec > 0 ? bonusDec : nonBonusDec;
+      stack.add({'sub_type': bonusDec > 0 ? 'bonus' : 'non_bonus',
+        'amount': amt, 'date': data['documentDate'], 'doc': docNum});
+      totalPushed += amt;
+    } else if (type == 1) {
+      int amount = bonusInc > 0 ? bonusInc : nonBonusInc;
+      final isBonus = bonusInc > 0;
+      while (amount > 0 && stack.isNotEmpty) {
+        final first = stack[0];
+        final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
+        amount -= mi;
+        first['amount'] = (first['amount'] as int) - mi;
+        totalConsumed += mi;
+        String tier = 'none';
 
-          matchings.add(MatchingDetailsCompanion.insert(
-            id: _uuid.v4(), resultId: r.id,
-            increaseDocNumber: Value(data.documentNumber ?? ''),
-            decreaseDocNumber: Value(first['doc']?.toString() ?? ''),
-            decreaseDate: Value(first['date'] as DateTime?),
-            amountMatched: Value(mi), bonusTier: Value(tier),
-          ));
-
-          if ((first['amount'] as int) <= 0) stack.removeAt(0);
+        if (isBonus && first['sub_type'] == 'bonus' && first['date'] != null) {
+          final d = first['date'] as int;
+          final pdd1 = r['paymentDueDate1'] as int?;
+          final pdd2 = r['paymentDueDate2'] as int?;
+          final pdd3 = r['paymentDueDate3'] as int?;
+          if (pdd1 != null && d <= pdd1) { b1 += mi; tier = 'bonus_1'; }
+          else if (pdd2 != null && d <= pdd2) { b2 += mi; tier = 'bonus_2'; }
+          else if (pdd3 != null && d <= pdd3) { b3 += mi; tier = 'bonus_3'; }
         }
-      }
 
-      totalBonus += b1 + b2 + b3;
-      updates.add(_BonusUpdate(r.id, b1, b2, b3, beforeStr, stack.toString()));
+        matchings.add({'id': _uuid.v4(), 'resultId': r['id'],
+          'increaseDoc': docNum, 'decreaseDoc': first['doc'] ?? '',
+          'decreaseDate': first['date'], 'amount': mi, 'tier': tier});
 
-      if (updates.length >= 100) {
-        await _flush(updates, matchings);
-        onLog('✅ Đã tính ${i + 1} dòng...');
-        updates = [];
-        matchings = [];
+        if ((first['amount'] as int) <= 0) stack.removeAt(0);
       }
     }
-    if (updates.isNotEmpty) await _flush(updates, matchings);
 
-    final totalRemaining = stack.fold<int>(0, (sum, item) => sum + (item['amount'] as int));
-    return FifoResult(
-      totalBonus: totalBonus, totalConsumed: totalConsumed,
-      totalRemaining: totalRemaining, totalPushed: totalPushed,
-    );
+    totalBonus += b1 + b2 + b3;
+    bonusUpdates.add({'id': r['id'], 'b1': b1, 'b2': b2, 'b3': b3,
+      'before': beforeStr, 'after': stack.toString()});
   }
 
-  Future<void> _flush(List<_BonusUpdate> updates, List<MatchingDetailsCompanion> matchings) async {
-    await _db.batch((batch) {
-      for (final u in updates) {
-        batch.update(_db.results,
-          ResultsCompanion(bonus1: Value(u.b1), bonus2: Value(u.b2), bonus3: Value(u.b3),
-              beforeRemain: Value(u.before), afterRemain: Value(u.after)),
-          where: (r) => r.id.equals(u.id));
-      }
-      if (matchings.isNotEmpty) batch.insertAll(_db.matchingDetails, matchings);
-    });
-  }
-}
-
-class _BonusUpdate {
-  final String id;
-  final int b1, b2, b3;
-  final String before, after;
-  _BonusUpdate(this.id, this.b1, this.b2, this.b3, this.before, this.after);
+  final totalRemaining = stack.fold<int>(0, (s, item) => s + (item['amount'] as int));
+  return FifoResult(totalBonus: totalBonus, totalConsumed: totalConsumed,
+    totalRemaining: totalRemaining, totalPushed: totalPushed,
+    bonusUpdates: bonusUpdates, matchingDetails: matchings);
 }

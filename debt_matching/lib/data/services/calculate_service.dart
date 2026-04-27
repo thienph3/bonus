@@ -1,15 +1,16 @@
+import 'dart:isolate';
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import 'calculate_result_builder.dart';
 import 'calculate_fifo.dart';
+import 'calculate_writer.dart';
 
 class CalculateService {
   final AppDatabase _db = AppDatabase.instance;
   final _builder = CalculateResultBuilder();
 
   Future<Map<String, dynamic>> calculate(
-    void Function(String) onLog,
-    void Function(int) onSubStep,
+    void Function(String) onLog, void Function(int) onSubStep,
   ) async {
     onLog('Load dữ liệu...');
     final holidays = await _db.select(_db.holidayConfigs).get();
@@ -19,11 +20,10 @@ class CalculateService {
     final holidaySet = holidays.map((h) => DateTime(h.date.year, h.date.month, h.date.day)).toSet();
     final sortedLevels = List<LevelConfig>.from(levels)
       ..sort((a, b) {
-        int cmp = a.seasonalCode.compareTo(b.seasonalCode);
-        if (cmp != 0) return cmp;
-        cmp = a.salesMethod.compareTo(b.salesMethod);
-        if (cmp != 0) return cmp;
-        return b.paymentPeriod.compareTo(a.paymentPeriod);
+        int c = a.seasonalCode.compareTo(b.seasonalCode);
+        if (c != 0) return c;
+        c = a.salesMethod.compareTo(b.salesMethod);
+        return c != 0 ? c : b.paymentPeriod.compareTo(a.paymentPeriod);
       });
 
     return await _db.transaction(() async {
@@ -35,69 +35,65 @@ class CalculateService {
       onSubStep(1);
       final validated = _builder.validateAndMap(datas, sortedLevels);
       final resultRows = _builder.buildResultRows(datas, validated, holidaySet);
-
-      onLog('Lưu ${resultRows.length} kết quả...');
-      await _db.batch((batch) => batch.insertAll(_db.results, resultRows));
+      await _db.batch((b) => b.insertAll(_db.results, resultRows));
 
       onLog('Sắp xếp...');
       onSubStep(2);
       final validResults = await _getSortedValidResults(datas);
-      await _db.batch((batch) {
+      await _db.batch((b) {
         for (int i = 0; i < validResults.length; i++) {
-          batch.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
+          b.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
               where: (r) => r.id.equals(validResults[i].id));
         }
       });
 
-      onLog('Tính toán FIFO...');
+      onLog('Tính toán FIFO (background)...');
       onSubStep(3);
       final dataMap = {for (final d in datas) d.id: d};
-      final fifo = CalculateFifo(_db);
-      final fifoResult = await fifo.run(validResults, dataMap, onLog);
+      final fifo = await _runFifoInIsolate(validResults, dataMap);
 
-      // Reconciliation
-      onLog('--- Reconciliation ---');
-      onLog('Tổng pushed: ${fifoResult.totalPushed}');
-      onLog('Tổng consumed: ${fifoResult.totalConsumed}');
-      onLog('Tổng remaining: ${fifoResult.totalRemaining}');
-      final diff = fifoResult.totalPushed - fifoResult.totalConsumed - fifoResult.totalRemaining;
-      if (diff != 0) {
-        onLog('⚠️ MISMATCH: $diff');
-      } else {
-        onLog('✅ Reconciliation OK');
-      }
+      onLog('Lưu kết quả FIFO...');
+      final writer = CalculateWriter(_db);
+      await writer.writeFifoResults(fifo);
 
-      // Update latest run_history
-      final latestRun = await (_db.select(_db.runHistories)
-            ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
-            ..limit(1))
-          .getSingleOrNull();
-      if (latestRun != null) {
-        await (_db.update(_db.runHistories)..where((t) => t.id.equals(latestRun.id)))
-            .write(RunHistoriesCompanion(
-                totalBonus: Value(fifoResult.totalBonus), status: const Value('completed')));
-      }
+      onLog('Pushed: ${fifo.totalPushed}, Consumed: ${fifo.totalConsumed}, Remaining: ${fifo.totalRemaining}');
+      final diff = fifo.totalPushed - fifo.totalConsumed - fifo.totalRemaining;
+      onLog(diff != 0 ? '⚠️ MISMATCH: $diff' : '✅ Reconciliation OK');
 
-      onLog('✅ Hoàn tất. Tổng thưởng: ${fifoResult.totalBonus}');
+      await writer.updateRunHistory(fifo.totalBonus);
+      onLog('✅ Hoàn tất. Tổng thưởng: ${fifo.totalBonus}');
       onSubStep(4);
       return {
-        'total_records': validResults.length,
-        'total_bonus': fifoResult.totalBonus,
-        'total_pushed': fifoResult.totalPushed,
-        'total_consumed': fifoResult.totalConsumed,
-        'total_remaining': fifoResult.totalRemaining,
+        'total_records': validResults.length, 'total_bonus': fifo.totalBonus,
+        'total_pushed': fifo.totalPushed, 'total_consumed': fifo.totalConsumed,
+        'total_remaining': fifo.totalRemaining,
       };
     });
   }
 
+  Future<FifoResult> _runFifoInIsolate(List<Result> results, Map<String, MainData> dataMap) {
+    final sr = results.map((r) => {
+      'id': r.id, 'mainDataId': r.mainDataId, 'type': r.type,
+      'bonusDecrease': r.bonusDecrease, 'nonBonusDecrease': r.nonBonusDecrease,
+      'bonusIncrease': r.bonusIncrease, 'nonBonusIncrease': r.nonBonusIncrease,
+      'paymentDueDate1': r.paymentDueDate1?.millisecondsSinceEpoch,
+      'paymentDueDate2': r.paymentDueDate2?.millisecondsSinceEpoch,
+      'paymentDueDate3': r.paymentDueDate3?.millisecondsSinceEpoch,
+    }).toList();
+    final sd = dataMap.map((k, d) => MapEntry(k, {
+      'customerCode': d.customerCode, 'branch': d.branch, 'seasonalCode': d.seasonalCode,
+      'documentNumber': d.documentNumber, 'documentDate': d.documentDate?.millisecondsSinceEpoch,
+    }));
+    return Isolate.run(() => computeFifo({'results': sr, 'dataMap': sd}));
+  }
+
   Future<List<Result>> _getSortedValidResults(List<MainData> datas) async {
-    final allResults = await (_db.select(_db.results)
-          ..where((r) => r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1)))
-        .get();
-    final dataMap = {for (final d in datas) d.id: d};
-    final valid = allResults.where((r) => dataMap.containsKey(r.mainDataId)).toList();
+    final all = await (_db.select(_db.results)
+          ..where((r) => r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1))).get();
+    final dm = {for (final d in datas) d.id: d};
+    final valid = all.where((r) => dm.containsKey(r.mainDataId)).toList();
     valid.sort((a, b) {
-      final da = dataMap[a.mainDataId]!, db = dataMap[b.mainDataId]!;
+      final da = dm[a.mainDataId]!, db = dm[b.mainDataId]!;
       int c = da.customerCode.compareTo(db.customerCode);
       if (c != 0) return c;
       c = da.branch.compareTo(db.branch);
