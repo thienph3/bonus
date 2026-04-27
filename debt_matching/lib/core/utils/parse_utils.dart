@@ -15,13 +15,12 @@ int? parseNumber(dynamic value) {
 /// Parse date from dynamic value (Excel serial, String, DateTime, null)
 DateTime? parseDate(dynamic value) {
   if (value == null) return null;
-  if (value is DateTime) return value;
+  if (value is DateTime) return DateTime(value.year, value.month, value.day);
 
   // Excel serial number
   if (value is double || value is int) {
     final serial = value is int ? value : (value as double).toInt();
     if (serial <= 0) return null;
-    // Excel bug: 1900 is not a leap year, skip day 60
     final base = DateTime(1899, 12, 30);
     return base.add(Duration(days: serial > 59 ? serial : serial + 1));
   }
@@ -39,7 +38,8 @@ DateTime? parseDate(dynamic value) {
 
   for (final fmt in formats) {
     try {
-      return DateFormat(fmt).parseStrict(str);
+      final dt = DateFormat(fmt).parseStrict(str);
+      return DateTime(dt.year, dt.month, dt.day);
     } catch (_) {}
   }
 
@@ -49,10 +49,10 @@ DateTime? parseDate(dynamic value) {
 /// Adjust date to skip holidays (iterative, not recursive)
 DateTime? changeDateByHolidays(DateTime? date, Set<DateTime> holidaySet) {
   if (date == null) return null;
-  var current = date;
+  var current = DateTime(date.year, date.month, date.day);
   int maxIterations = 1000;
   while (holidaySet.contains(current) && maxIterations > 0) {
-    current = current.add(const Duration(days: 1));
+    current = DateTime(current.year, current.month, current.day + 1);
     maxIterations--;
   }
   return current;

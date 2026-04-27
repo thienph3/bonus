@@ -17,34 +17,20 @@ class ImportMainData {
     }
 
     onLog('📥 Importing main_data...');
-
-    // Dynamic header detection
-    int dataStartRow = -1;
-    for (int i = 0; i < 30 && i < sheet.maxRows; i++) {
-      final row = sheet.row(i);
-      final nonEmpty = row
-          .where((c) => c?.value != null && c!.value.toString().trim().isNotEmpty)
-          .length;
-      if (nonEmpty >= 17) {
-        dataStartRow = i + 1;
-        break;
-      }
-    }
-
+    final dataStartRow = _findHeaderRow(sheet);
     if (dataStartRow == -1) {
       onLog('❌ Không tìm thấy header row trong sheet Data.');
       return 0;
     }
 
     int count = 0;
+    var batch = <MainDatasCompanion>[];
     for (int i = dataStartRow; i < sheet.maxRows; i++) {
       final row = sheet.row(i);
-      final allEmpty = row.every(
-          (c) => c?.value == null || c!.value.toString().trim().isEmpty);
-      if (allEmpty) break;
+      if (row.every((c) => c?.value == null || c!.value.toString().trim().isEmpty)) break;
 
       try {
-        await _db.into(_db.mainDatas).insert(MainDatasCompanion.insert(
+        batch.add(MainDatasCompanion.insert(
           id: _uuid.v4(),
           idx: Value(parseNumber(row[0]?.value)),
           documentDate: Value(parseDate(row[1]?.value)),
@@ -64,13 +50,32 @@ class ImportMainData {
           code: Value(row[15]?.value?.toString()),
           salesMethod: row[16]?.value?.toString() ?? '',
         ));
-        count++;
-        if (count % 100 == 0) onLog('✅ Đã nhập $count dòng...');
+
+        if (batch.length >= 100) {
+          await _db.batch((b) => b.insertAll(_db.mainDatas, batch));
+          count += batch.length;
+          onLog('✅ Đã nhập $count dòng...');
+          batch = [];
+        }
       } catch (e) {
         onLog('⚠️ Row ${i + 1}: $e, skipping.');
       }
     }
+
+    if (batch.isNotEmpty) {
+      await _db.batch((b) => b.insertAll(_db.mainDatas, batch));
+      count += batch.length;
+    }
     onLog('✅ Đã nhập $count dòng dữ liệu.');
     return count;
+  }
+
+  int _findHeaderRow(Sheet sheet) {
+    for (int i = 0; i < 30 && i < sheet.maxRows; i++) {
+      final row = sheet.row(i);
+      final nonEmpty = row.where((c) => c?.value != null && c!.value.toString().trim().isNotEmpty).length;
+      if (nonEmpty >= 17) return i + 1;
+    }
+    return -1;
   }
 }

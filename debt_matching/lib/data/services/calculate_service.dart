@@ -25,35 +25,37 @@ class CalculateService {
         return b.paymentPeriod.compareTo(a.paymentPeriod);
       });
 
-    onLog('Xóa kết quả cũ...');
-    await _db.delete(_db.results).go();
-    onLog('Validate & tạo kết quả...');
-    onSubStep(1);
-    final validated = _builder.validateAndMap(datas, sortedLevels);
-    final resultRows = _builder.buildResultRows(datas, validated, holidaySet);
+    return await _db.transaction(() async {
+      onLog('Xóa kết quả cũ...');
+      await _db.delete(_db.results).go();
+      onLog('Validate & tạo kết quả...');
+      onSubStep(1);
+      final validated = _builder.validateAndMap(datas, sortedLevels);
+      final resultRows = _builder.buildResultRows(datas, validated, holidaySet);
 
-    onLog('Lưu ${resultRows.length} kết quả...');
-    await _db.batch((batch) => batch.insertAll(_db.results, resultRows));
+      onLog('Lưu ${resultRows.length} kết quả...');
+      await _db.batch((batch) => batch.insertAll(_db.results, resultRows));
 
-    onLog('Sắp xếp...');
-    onSubStep(2);
-    final validResults = await _getSortedValidResults(datas);
+      onLog('Sắp xếp...');
+      onSubStep(2);
+      final validResults = await _getSortedValidResults(datas);
 
-    await _db.batch((batch) {
-      for (int i = 0; i < validResults.length; i++) {
-        batch.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
-            where: (r) => r.id.equals(validResults[i].id));
-      }
+      await _db.batch((batch) {
+        for (int i = 0; i < validResults.length; i++) {
+          batch.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
+              where: (r) => r.id.equals(validResults[i].id));
+        }
+      });
+
+      onLog('Tính toán FIFO...');
+      onSubStep(3);
+      final dataMap = {for (final d in datas) d.id: d};
+      final totalBonus = await _calculateFifo(validResults, dataMap, onLog);
+
+      onLog('✅ Hoàn tất. Tổng thưởng: $totalBonus');
+      onSubStep(4);
+      return {'total_records': validResults.length, 'total_bonus': totalBonus};
     });
-
-    onLog('Tính toán FIFO...');
-    onSubStep(3);
-    final dataMap = {for (final d in datas) d.id: d};
-    final totalBonus = await _calculateFifo(validResults, dataMap, onLog);
-
-    onLog('✅ Hoàn tất. Tổng thưởng: $totalBonus');
-    onSubStep(4);
-    return {'total_records': validResults.length, 'total_bonus': totalBonus};
   }
 
   Future<List<Result>> _getSortedValidResults(List<MainData> datas) async {
@@ -85,25 +87,23 @@ class CalculateService {
   }
 
   Future<int> _calculateFifo(
-    List<Result> results,
-    Map<String, MainData> dataMap,
-    void Function(String) onLog,
+    List<Result> results, Map<String, MainData> dataMap, void Function(String) onLog,
   ) async {
-    String curCustomer = '', curBranch = '', curSeasonal = '';
+    String curCust = '', curBranch = '', curSeason = '';
     List<Map<String, dynamic>> stack = [];
     int totalBonus = 0;
+    var updates = <_BonusUpdate>[];
 
     for (int i = 0; i < results.length; i++) {
       final r = results[i];
       final data = dataMap[r.mainDataId]!;
 
-      if (curCustomer != data.customerCode || curBranch != data.branch || curSeasonal != data.seasonalCode) {
-        curCustomer = data.customerCode;
+      if (curCust != data.customerCode || curBranch != data.branch || curSeason != data.seasonalCode) {
+        curCust = data.customerCode;
         curBranch = data.branch;
-        curSeasonal = data.seasonalCode;
+        curSeason = data.seasonalCode;
         stack = [];
       }
-
       if (data.documentNumber == null || data.documentNumber!.isEmpty) continue;
 
       final beforeStr = stack.toString();
@@ -123,7 +123,6 @@ class CalculateService {
           final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
           amount -= mi;
           first['amount'] = (first['amount'] as int) - mi;
-
           if (isBonus && first['sub_type'] == 'bonus' && first['date'] != null) {
             final d = first['date'] as DateTime;
             if (r.paymentDueDate1 != null && !d.isAfter(r.paymentDueDate1!)) {
@@ -139,12 +138,33 @@ class CalculateService {
       }
 
       totalBonus += b1 + b2 + b3;
-      await (_db.update(_db.results)..where((t) => t.id.equals(r.id))).write(
-        ResultsCompanion(bonus1: Value(b1), bonus2: Value(b2), bonus3: Value(b3),
-            beforeRemain: Value(beforeStr), afterRemain: Value(stack.toString())),
-      );
-      if ((i + 1) % 100 == 0) onLog('✅ Đã tính ${i + 1} dòng...');
+      updates.add(_BonusUpdate(r.id, b1, b2, b3, beforeStr, stack.toString()));
+
+      if (updates.length >= 100) {
+        await _flushUpdates(updates);
+        onLog('✅ Đã tính ${i + 1} dòng...');
+        updates = [];
+      }
     }
+    if (updates.isNotEmpty) await _flushUpdates(updates);
     return totalBonus;
   }
+
+  Future<void> _flushUpdates(List<_BonusUpdate> updates) async {
+    await _db.batch((batch) {
+      for (final u in updates) {
+        batch.update(_db.results,
+          ResultsCompanion(bonus1: Value(u.b1), bonus2: Value(u.b2), bonus3: Value(u.b3),
+              beforeRemain: Value(u.before), afterRemain: Value(u.after)),
+          where: (r) => r.id.equals(u.id));
+      }
+    });
+  }
+}
+
+class _BonusUpdate {
+  final String id;
+  final int b1, b2, b3;
+  final String before, after;
+  _BonusUpdate(this.id, this.b1, this.b2, this.b3, this.before, this.after);
 }

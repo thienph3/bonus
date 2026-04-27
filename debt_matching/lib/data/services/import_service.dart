@@ -15,7 +15,7 @@ class ImportService {
     String filePath,
     void Function(String) onLog,
   ) async {
-    final bytes = File(filePath).readAsBytesSync();
+    final bytes = await File(filePath).readAsBytes();
     final excel = Excel.decodeBytes(bytes);
 
     onLog('🗑️ Xóa dữ liệu cũ...');
@@ -38,21 +38,19 @@ class ImportService {
       return 0;
     }
     onLog('📥 Importing holiday_config...');
-    int count = 0;
+    final batch = <HolidayConfigsCompanion>[];
     for (int i = 1; i < sheet.maxRows; i++) {
       final row = sheet.row(i);
       if (row.isEmpty || row[0]?.value == null) continue;
       final date = parseDate(row[0]?.value);
-      if (date == null) {
-        onLog('⚠️ Row ${i + 1}: invalid date, skipping.');
-        continue;
-      }
-      await _db.into(_db.holidayConfigs).insert(
-          HolidayConfigsCompanion.insert(id: _uuid.v4(), date: date));
-      count++;
+      if (date == null) continue;
+      batch.add(HolidayConfigsCompanion.insert(id: _uuid.v4(), date: date));
     }
-    onLog('✅ Đã nhập $count ngày lễ.');
-    return count;
+    if (batch.isNotEmpty) {
+      await _db.batch((b) => b.insertAll(_db.holidayConfigs, batch));
+    }
+    onLog('✅ Đã nhập ${batch.length} ngày lễ.');
+    return batch.length;
   }
 
   Future<int> _importLevelConfig(Excel excel, void Function(String) onLog) async {
@@ -62,12 +60,12 @@ class ImportService {
       return 0;
     }
     onLog('📥 Importing level_config...');
-    int count = 0;
+    final batch = <LevelConfigsCompanion>[];
     for (int i = 1; i < sheet.maxRows; i++) {
       final row = sheet.row(i);
       if (row.isEmpty || row[0]?.value == null) continue;
       try {
-        await _db.into(_db.levelConfigs).insert(LevelConfigsCompanion.insert(
+        batch.add(LevelConfigsCompanion.insert(
           id: _uuid.v4(),
           seasonalCode: row[0]?.value?.toString() ?? '',
           salesMethod: row[1]?.value?.toString() ?? '',
@@ -79,12 +77,14 @@ class ImportService {
           paymentDueDate2: Value(parseDate(row[7]?.value)),
           paymentDueDate3: Value(parseDate(row[8]?.value)),
         ));
-        count++;
       } catch (e) {
         onLog('⚠️ Row ${i + 1}: $e, skipping.');
       }
     }
-    onLog('✅ Đã nhập $count cấp độ.');
-    return count;
+    if (batch.isNotEmpty) {
+      await _db.batch((b) => b.insertAll(_db.levelConfigs, batch));
+    }
+    onLog('✅ Đã nhập ${batch.length} cấp độ.');
+    return batch.length;
   }
 }

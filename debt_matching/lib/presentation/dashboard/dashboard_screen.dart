@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import '../../core/theme/theme_provider.dart';
 import '../../data/services/import_service.dart';
 import '../../data/services/calculate_service.dart';
 import '../../data/services/export_service.dart';
@@ -7,7 +8,8 @@ import 'widgets/step_card.dart';
 import 'widgets/console_panel.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key});
+  final ThemeProvider themeProvider;
+  const DashboardScreen({super.key, required this.themeProvider});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -87,7 +89,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Debt Matching'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(widget.themeProvider.mode == ThemeMode.light
+                ? Icons.dark_mode : Icons.light_mode),
+            onPressed: widget.themeProvider.toggle,
+            tooltip: 'Đổi theme',
+          ),
+        ],
+      ),
       body: Row(
         children: [
           Expanded(flex: 3, child: _buildMainContent()),

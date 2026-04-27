@@ -1,78 +1,75 @@
-# KNOWN ISSUES
+# KNOWN ISSUES (Flutter version)
 
-## Bugs (cần fix)
+## Performance (quan trọng)
 
-### 1. Biến `idx` stale ở bước 5 calculate
+### 1. FIFO loop update từng row
 
-**File:** `services/result_service.py`
+**File:** `calculate_service.dart` → `_calculateFifo()`
 
-Trong vòng lặp tính bonus (bước 5), `batch.append((idx, result2))` dùng biến `idx` còn giữ giá trị cuối cùng từ bước 3 (tạo result). Khi log error sẽ hiển thị sai row number.
+Gọi `await _db.update(...).write(...)` cho mỗi result trong vòng lặp. Với 5000+ records → 5000 DB writes tuần tự, rất chậm.
 
-**Fix:** Thay bằng biến đếm riêng cho vòng lặp bước 5.
-
----
-
-### 2. Exception bị nuốt
-
-**File:** `services/result_service.py`
-
-```python
-except Exception as e:
-    log_func(f"An error occurred: {e}")
-```
-
-Chỉ log mà không raise. Worker sẽ emit `finished` (thành công) thay vì `error` → UI báo hoàn tất dù thực tế fail.
-
-**Fix:** Thêm `raise` sau log, hoặc emit error signal.
+**Fix:** Gom updates vào list, batch update mỗi 100 rows hoặc cuối vòng lặp.
 
 ---
 
-### 3. Null document_date crash ở bước 5
+### 2. Import insert từng row
 
-**File:** `services/result_service.py`
+**File:** `import_main_data.dart`, `import_service.dart`
 
-Nếu record decrease có `document_date = None`, push vào stack với `"date": None`. Khi increase consume stack, so sánh `None <= payment_due_date_1` → `TypeError`.
+Insert từng record một thay vì batch. Chậm với data lớn.
 
-**Fix:** Skip record có document_date = None, hoặc validate trước khi push.
-
----
-
-## Rủi ro nghiệp vụ (nên cải thiện)
-
-### 4. Decrease chỉ push 1 loại (bonus HOẶC non_bonus)
-
-Nếu record có cả `bonus_decrease > 0` VÀ `non_bonus_decrease > 0`, chỉ phần bonus được push vào stack. Phần non_bonus bị bỏ qua.
-
-Theo công thức: `bonus_decrease = decrease - adjust_decrease`, `non_bonus_decrease = adjust_decrease`. Nếu cả 2 > 0 thì tổng tiền vào stack < tổng decrease thực tế.
+**Fix:** Gom rows vào list, dùng `batch.insertAll()` mỗi 100 rows (như calculate đã làm ở bước insert results).
 
 ---
 
-### 5. non_bonus increase consume stack không phân biệt
+### 3. Không chạy trong Isolate
 
-Khi increase loại non_bonus consume stack, nó trừ bất kỳ item nào (cả bonus lẫn non_bonus). Có thể "ăn" hết khoản thanh toán bonus → increase bonus sau không còn gì để đối trừ → mất thưởng.
+**File:** Tất cả services
 
----
+Import/Calculate/Export chạy trên main thread. Data lớn sẽ block UI (jank, freeze).
 
-### 6. Không có chi tiết đối trừ (reconciliation)
-
-Không export được thông tin "khoản mua hàng X đối trừ với khoản thanh toán Y bao nhiêu tiền". Chỉ có tổng bonus_1/2/3. Khó giải trình cho kiểm toán.
+**Fix:** Wrap service calls trong `Isolate.run()` hoặc `compute()`. Lưu ý Drift cần setup riêng cho multi-isolate.
 
 ---
 
-## Kỹ thuật (nice to have)
+### 4. readAsBytesSync() block main thread
 
-### 7. Monolithic function
+**File:** `import_service.dart`
 
-`calculate_result()` có 350+ lines, không thể unit test từng bước riêng biệt.
+`File(filePath).readAsBytesSync()` đọc đồng bộ. File Excel 10MB+ sẽ freeze UI.
 
-### 8. Load lại từ DB không cần thiết
+**Fix:** Dùng `File(filePath).readAsBytes()` (async).
 
-Bước 4 gọi `self.repository.get_all()` sau khi bước 3 vừa insert xong. Data đã có sẵn trong memory.
+---
 
-### 9. Recursive holiday adjustment không có giới hạn
+## Logic
 
-`_change_date_by_holidays()` đệ quy không giới hạn. Nếu holiday_set chứa nhiều ngày liên tiếp (>1000) → stack overflow.
+### 5. Holiday set DateTime comparison
 
-### 10. Không share transaction giữa các repository
+**File:** `calculate_service.dart`, `parse_utils.dart`
 
-Mỗi repository tạo riêng engine/session. Không thể rollback toàn bộ nếu fail giữa chừng → DB ở trạng thái nửa vời.
+`holidaySet` dùng `DateTime(year, month, day)` (midnight). Nhưng `changeDateByHolidays` cộng `Duration(days: 1)` — nếu input DateTime có time component (VD: 10:30) thì ngày tiếp theo cũng có time → không match với set.
+
+**Fix:** Normalize date trong `changeDateByHolidays`: `DateTime(current.year, current.month, current.day)` trước khi check set.
+
+---
+
+### 6. Không có transaction wrapper
+
+**File:** `calculate_service.dart`
+
+Nếu fail ở bước FIFO, bước insert results đã commit → DB ở trạng thái nửa vời (có results nhưng bonus = 0).
+
+**Fix:** Wrap toàn bộ `calculate()` trong `_db.transaction(() async { ... })`.
+
+---
+
+## UX
+
+### 7. Không có dark theme toggle
+
+App có `darkTheme` config nhưng không có UI button để switch. Luôn dùng light.
+
+### 8. Progress bar indeterminate
+
+`LinearProgressIndicator` chạy không xác định. Không hiển thị % hoàn thành thực tế.
