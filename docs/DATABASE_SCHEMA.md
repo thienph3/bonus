@@ -1,118 +1,129 @@
-# DATABASE SCHEMA - Cấu trúc cơ sở dữ liệu
+# DATABASE SCHEMA
 
-## Tổng quan
-
-SQLite database (`database.db`), sử dụng SQLAlchemy ORM.
-4 bảng chính, tất cả dùng UUID string làm primary key.
-
----
-
-## Bảng: holiday_config
-
-Danh sách ngày nghỉ lễ, dùng để điều chỉnh payment_due_date.
-
-| Column | Type | Constraint | Mô tả |
-|--------|------|-----------|--------|
-| id | String (UUID) | PK | |
-| date | Date | UNIQUE, NOT NULL | Ngày nghỉ lễ |
-| name | String | nullable | Tên ngày lễ (chưa sử dụng) |
-| desc | String | nullable | Mô tả (chưa sử dụng) |
+SQLite database (`debt_matching.db`), sử dụng Drift ORM.
+6 bảng, UUID string primary key. Schema version 2.
+Mọi data table có `runId` để phân biệt kỳ.
 
 ---
 
-## Bảng: level_config
+## run_histories
 
-Cấu hình cấp độ thưởng theo mã vụ việc + phương thức bán hàng + kỳ hạn.
+Lịch sử các lần chạy.
 
-| Column | Type | Constraint | Mô tả |
-|--------|------|-----------|--------|
-| id | String (UUID) | PK | |
-| seasonal_code | String | NOT NULL | Mã vụ việc |
-| sales_method | String | NOT NULL | Phương thức bán hàng |
-| payment_period | Integer | NOT NULL | Kỳ hạn thanh toán (ngày) - dùng để match |
-| payment_period_1 | Integer | NOT NULL | Số ngày tính bonus tier 1 |
-| payment_period_2 | Integer | NOT NULL | Số ngày tính bonus tier 2 |
-| payment_period_3 | Integer | NOT NULL | Số ngày tính bonus tier 3 |
-| payment_due_date_1 | Date | nullable | Ngày đáo hạn cố định tier 1 (ưu tiên) |
-| payment_due_date_2 | Date | nullable | Ngày đáo hạn cố định tier 2 (ưu tiên) |
-| payment_due_date_3 | Date | nullable | Ngày đáo hạn cố định tier 3 (ưu tiên) |
-
-**Unique constraint:** `(seasonal_code, sales_method, payment_period)`
+| Column | Type | Default | Mô tả |
+|--------|------|---------|--------|
+| id | Text | PK | UUID, cũng là runId |
+| timestamp | DateTime | | Thời điểm chạy |
+| filePath | Text | '' | Đường dẫn file input |
+| recordCount | Integer | 0 | Số records imported |
+| levelCount | Integer | 0 | Số levels imported |
+| holidayCount | Integer | 0 | Số holidays imported |
+| totalBonus | Integer | 0 | Tổng bonus sau calculate |
+| status | Text | 'pending' | importing → imported → completed |
 
 ---
 
-## Bảng: main_data
+## holiday_configs
 
-Dữ liệu bán hàng chính, import từ sheet "Data".
-
-| Column | Type | Constraint | Mô tả |
-|--------|------|-----------|--------|
-| id | String (UUID) | PK | |
-| idx | Integer | nullable | Số thứ tự trong Excel |
-| document_date | Date | nullable | Ngày chứng từ |
-| document_number | String | nullable | Số chứng từ |
-| description | String | nullable | Diễn giải (không dùng trong tính toán) |
-| corresponding_account | String | nullable | Tài khoản đối ứng |
-| increase | Integer | nullable | Phát sinh tăng |
-| decrease | Integer | nullable | Phát sinh giảm |
-| adjust_increase | Integer | nullable | Điều chỉnh tăng |
-| adjust_decrease | Integer | nullable | Điều chỉnh giảm |
-| end_amount | Integer | nullable | Số dư cuối kỳ (không dùng trong tính toán) |
-| seasonal_code | String | NOT NULL | Mã vụ việc |
-| payment_period | Integer | nullable | Kỳ hạn thanh toán (ngày) |
-| customer_code | String | NOT NULL | Mã khách hàng |
-| customer_name | String | nullable | Tên khách hàng (không dùng trong tính toán) |
-| branch | String | NOT NULL | Chi nhánh |
-| code | String | nullable | Mã |
-| sales_method | String | NOT NULL | Phương thức bán hàng |
+| Column | Type | Mô tả |
+|--------|------|--------|
+| id | Text (PK) | |
+| runId | Text (nullable) | FK → run_histories.id |
+| date | DateTime | Ngày nghỉ lễ |
+| name | Text (nullable) | |
+| description | Text (nullable) | |
 
 ---
 
-## Bảng: result
+## level_configs
 
-Kết quả tính toán thưởng, liên kết với main_data và level_config.
+| Column | Type | Mô tả |
+|--------|------|--------|
+| id | Text (PK) | |
+| runId | Text (nullable) | |
+| seasonalCode | Text | Mã vụ việc |
+| salesMethod | Text | Phương thức bán hàng |
+| paymentPeriod | Integer | Kỳ hạn (ngày) — dùng để match |
+| paymentPeriod1/2/3 | Integer | Số ngày tính bonus tier 1/2/3 |
+| paymentDueDate1/2/3 | DateTime (nullable) | Ngày cố định tier 1/2/3 (ưu tiên) |
 
-| Column | Type | Constraint | Mô tả |
-|--------|------|-----------|--------|
-| id | String (UUID) | PK | |
-| main_data_id | String | FK → main_data.id, NOT NULL | |
-| level_config_id | String | FK → level_config.id, nullable | NULL nếu không match được level |
-| sorted_idx | Integer | NOT NULL, default 0 | Thứ tự sau khi sort (dùng cho FIFO) |
-| original_idx | Integer | NOT NULL, default 0 | Thứ tự gốc khi import |
-| type | Integer | NOT NULL, default 0 | -1=invalid, 0=decrease, 1=increase |
-| payment_due_date | Date | nullable | Ngày đáo hạn chung |
-| bonus_increase | Integer | NOT NULL, default 0 | Phần tăng có thưởng |
-| non_bonus_increase | Integer | NOT NULL, default 0 | Phần tăng không thưởng |
-| bonus_decrease | Integer | NOT NULL, default 0 | Phần giảm có thưởng |
-| non_bonus_decrease | Integer | NOT NULL, default 0 | Phần giảm không thưởng |
-| payment_due_date_1 | Date | nullable | Mốc đáo hạn tier 1 |
-| payment_due_date_2 | Date | nullable | Mốc đáo hạn tier 2 |
-| payment_due_date_3 | Date | nullable | Mốc đáo hạn tier 3 |
-| bonus_1 | Integer | NOT NULL, default 0 | Thưởng tier 1 |
-| bonus_2 | Integer | NOT NULL, default 0 | Thưởng tier 2 |
-| bonus_3 | Integer | NOT NULL, default 0 | Thưởng tier 3 |
-| before_remain | String | NOT NULL, default "" | Stack trước khi xử lý (debug) |
-| after_remain | String | NOT NULL, default "" | Stack sau khi xử lý (debug) |
-| calculate_status | String | NOT NULL, default "valid" | "valid" hoặc "invalid" |
-| calculate_message | String | NOT NULL, default "" | Lý do invalid |
+---
+
+## main_datas
+
+Sổ chi tiết TK 131.
+
+| Column | Type | Mô tả |
+|--------|------|--------|
+| id | Text (PK) | |
+| runId | Text (nullable) | |
+| idx | Integer (nullable) | STT trong Excel |
+| documentDate | DateTime (nullable) | Ngày chứng từ |
+| documentNumber | Text (nullable) | Số chứng từ |
+| description | Text (nullable) | |
+| correspondingAccount | Text (nullable) | TK đối ứng |
+| increase | Integer (nullable) | Phát sinh tăng (Nợ TK 131) |
+| decrease | Integer (nullable) | Phát sinh giảm (Có TK 131) |
+| adjustIncrease | Integer (nullable) | Điều chỉnh tăng |
+| adjustDecrease | Integer (nullable) | Điều chỉnh giảm |
+| endAmount | Integer (nullable) | Số dư cuối kỳ |
+| seasonalCode | Text | Mã vụ việc |
+| paymentPeriod | Integer (nullable) | Kỳ hạn thanh toán |
+| customerCode | Text | Mã khách hàng |
+| customerName | Text (nullable) | |
+| branch | Text | Chi nhánh |
+| code | Text (nullable) | |
+| salesMethod | Text | Phương thức bán hàng |
+
+---
+
+## results
+
+| Column | Type | Default | Mô tả |
+|--------|------|---------|--------|
+| id | Text (PK) | | |
+| runId | Text (nullable) | | |
+| mainDataId | Text | FK → main_datas.id | |
+| levelConfigId | Text (nullable) | FK → level_configs.id | |
+| sortedIdx | Integer | 0 | Thứ tự FIFO |
+| originalIdx | Integer | 0 | Thứ tự gốc |
+| type | Integer | 0 | -1=invalid, 0=decrease, 1=increase |
+| paymentDueDate | DateTime (nullable) | | |
+| bonusIncrease | Integer | 0 | |
+| nonBonusIncrease | Integer | 0 | |
+| bonusDecrease | Integer | 0 | |
+| nonBonusDecrease | Integer | 0 | |
+| paymentDueDate1/2/3 | DateTime (nullable) | | Mốc đáo hạn tier |
+| bonus1/2/3 | Integer | 0 | Số tiền đủ điều kiện thưởng |
+| beforeRemain | Text | '' | Stack trước xử lý |
+| afterRemain | Text | '' | Stack sau xử lý |
+| calculateStatus | Text | 'valid' | valid / invalid |
+| calculateMessage | Text | '' | Lý do invalid |
+
+---
+
+## matching_details
+
+Chi tiết từng cặp đối trừ (cho kiểm toán).
+
+| Column | Type | Default | Mô tả |
+|--------|------|---------|--------|
+| id | Text (PK) | | |
+| runId | Text (nullable) | | |
+| resultId | Text | FK → results.id | |
+| increaseDocNumber | Text | '' | Số CT mua hàng |
+| decreaseDocNumber | Text | '' | Số CT thanh toán |
+| decreaseDate | DateTime (nullable) | | Ngày thanh toán |
+| amountMatched | Integer | 0 | Số tiền đối trừ |
+| bonusTier | Text | '' | none / bonus_1 / bonus_2 / bonus_3 |
 
 ---
 
 ## Relationships
 
 ```
-main_data (1) ←── (N) result
-level_config (1) ←── (N) result
-holiday_config: không có FK, dùng như lookup set
+run_histories (1) ←── (N) holiday_configs, level_configs, main_datas, results, matching_details
+main_datas (1) ←── (N) results
+level_configs (1) ←── (N) results
+results (1) ←── (N) matching_details
 ```
-
----
-
-## Repository Pattern
-
-Tất cả repositories dùng chung pattern:
-- Mỗi repository tạo riêng `engine` và `SessionFactory` (không share session)
-- `bulk_create()`: Binary split retry khi batch fail → isolate row lỗi
-- `bulk_update()`: Tương tự binary split retry
-- `delete_all()`: Xóa toàn bộ trước khi import mới
-- `rollback()`: Rollback session khi có lỗi

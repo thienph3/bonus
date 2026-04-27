@@ -19,13 +19,22 @@ Hệ thống gom toàn bộ khoản thanh toán vào stack FIFO theo nhóm (khá
 
 > **Lưu ý:** bonus_1/2/3 = **số tiền đủ điều kiện thưởng** ở mỗi tier, không phải tiền thưởng thực tế. Bộ phận chính sách sẽ nhân % chiết khấu tương ứng để ra số tiền thưởng cuối cùng.
 
-Chi tiết thuật toán xem [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md).
-
 ## Workflow
 
-1. **Nhập dữ liệu** — File Excel gồm 3 sheet: `Data`, `level_config`, `holiday_config`
-2. **Tính toán** — Validate, mapping level, sort, đối trừ FIFO, tính bonus
-3. **Xuất kết quả** — Export Excel có format
+1. **Chọn file Excel** → App tự động import + calculate
+2. **Preview kết quả** → Xem summary, warnings, top records có bonus, reconciliation
+3. **Xuất kết quả** → Export Excel gồm 2 sheet: Result + Matching Detail
+
+Hỗ trợ **nhiều kỳ**: mỗi lần import tạo 1 kỳ mới, data cũ được giữ lại. Chọn kỳ cũ từ dropdown để xem lại hoặc export lại.
+
+## Tính năng
+
+- Đối trừ FIFO với chi tiết matching (khoản nào match khoản nào)
+- Reconciliation check (tổng pushed = consumed + remaining)
+- Multi-period: lưu lịch sử các kỳ, xem/export/xóa từng kỳ
+- Heavy computation chạy trong Isolate (UI không jank)
+- Light/Dark theme
+- Audit trail (RunHistories)
 
 ## Cài đặt & Chạy
 
@@ -49,7 +58,5 @@ Yêu cầu: Flutter SDK (stable), Windows
 | File | Nội dung |
 |------|----------|
 | [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md) | Thuật toán tính toán (FIFO, 3-tier bonus) |
-| [docs/LOGIC_IMPORT.md](docs/LOGIC_IMPORT.md) | Logic import dữ liệu |
-| [docs/LOGIC_EXPORT.md](docs/LOGIC_EXPORT.md) | Logic export kết quả |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema database |
-| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Known issues (đã fix trong Flutter version) |
+| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Known issues & fix history |

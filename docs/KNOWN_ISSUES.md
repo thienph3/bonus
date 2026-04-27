@@ -1,39 +1,33 @@
 # KNOWN ISSUES
 
-## Thiết kế nghiệp vụ
+## Business rules (accepted)
 
-### 1. ~~FIFO mù — không phản ánh thứ tự thời gian thực~~ [BIZ RULE]
-
-### 2. ~~Không phân biệt thanh toán cho khoản nợ nào~~ [FIXED]
-
-### 3. ~~bonus_1/2/3 là số tiền đủ điều kiện~~ [CLARIFIED]
-
-### 4. ~~Decrease chỉ push 1 loại~~ [ACCEPTED]
-
-### 5. ~~non_bonus increase consume stack không phân biệt~~ [ACCEPTED]
-
----
+| # | Issue | Status |
+|---|-------|--------|
+| 1 | FIFO gom decrease trước increase (không theo thứ tự thời gian thực) | BIZ RULE |
+| 2 | Decrease chỉ push 1 loại (bonus HOẶC non_bonus) | ACCEPTED |
+| 3 | non_bonus increase consume stack không phân biệt | ACCEPTED |
+| 4 | bonus_1/2/3 = số tiền đủ điều kiện, không phải tiền thưởng thực | CLARIFIED |
 
 ## Đã fix ✅
 
 | Issue | Fix |
 |-------|-----|
-| FIFO batch update từng row | Batch 100 rows |
+| FIFO update từng row | Batch 100 rows |
 | Import insert từng row | Batch insertAll |
 | readAsBytesSync block UI | Async readAsBytes |
 | Holiday DateTime normalize | Normalize trong parseDate + changeDateByHolidays |
-| Không có transaction | Wrap calculate trong db.transaction() |
+| Không có transaction | db.transaction() wrapper |
 | Không có audit trail | Bảng RunHistories |
 | Không export chi tiết đối trừ | Bảng MatchingDetails + sheet "Matching Detail" |
-| Không validate tổng | Reconciliation check sau FIFO |
-| Dark theme toggle | IconButton trên AppBar |
-| Flow 3 bước thừa | Gộp thành: Chọn file → Preview → Export |
-| Không có preview | Preview panel với summary, warnings, top 20 records |
-| Không chạy trong Isolate | Excel parse, FIFO compute, Excel build chạy trong Isolate.run() |
-| Không hỗ trợ nhiều kỳ | runId gắn vào mọi record, run selector UI, xem/export/xóa từng kỳ |
-
----
+| Không validate tổng | Reconciliation check (pushed = consumed + remaining) |
+| Dark theme | Toggle trên AppBar |
+| Flow 3 bước thừa | Gộp: Chọn file → Preview → Export |
+| Không có preview | Preview panel (summary, warnings, top 20) |
+| Không chạy trong Isolate | Excel parse, FIFO, Excel build trong Isolate.run() |
+| Không hỗ trợ nhiều kỳ | runId trên mọi record, run selector, xem/export/xóa từng kỳ |
+| Không phân biệt thanh toán cho khoản nào | MatchingDetails lưu chi tiết từng cặp đối trừ |
 
 ## Còn tồn tại
 
-Không có issues tồn tại.
+Không có.
