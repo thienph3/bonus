@@ -1,11 +1,10 @@
 import 'package:drift/drift.dart';
-import 'package:uuid/uuid.dart';
 import '../database/app_database.dart';
-import '../../core/utils/parse_utils.dart';
+import 'calculate_result_builder.dart';
 
 class CalculateService {
   final AppDatabase _db = AppDatabase.instance;
-  final _uuid = const Uuid();
+  final _builder = CalculateResultBuilder();
 
   Future<Map<String, dynamic>> calculate(
     void Function(String) onLog,
@@ -16,292 +15,136 @@ class CalculateService {
     final levels = await _db.select(_db.levelConfigs).get();
     final datas = await _db.select(_db.mainDatas).get();
 
-    final holidaySet = holidays.map((h) => _dateOnly(h.date)).toSet();
-
-    // Sort levels
+    final holidaySet = holidays.map((h) => DateTime(h.date.year, h.date.month, h.date.day)).toSet();
     final sortedLevels = List<LevelConfig>.from(levels)
       ..sort((a, b) {
         int cmp = a.seasonalCode.compareTo(b.seasonalCode);
         if (cmp != 0) return cmp;
         cmp = a.salesMethod.compareTo(b.salesMethod);
         if (cmp != 0) return cmp;
-        return b.paymentPeriod.compareTo(a.paymentPeriod); // DESC
+        return b.paymentPeriod.compareTo(a.paymentPeriod);
       });
 
-    // Delete old results
     onLog('Xóa kết quả cũ...');
     await _db.delete(_db.results).go();
-
-    // Step 1: Validate & map level
-    onLog('Validate & mapping level...');
+    onLog('Validate & tạo kết quả...');
     onSubStep(1);
+    final validated = _builder.validateAndMap(datas, sortedLevels);
+    final resultRows = _builder.buildResultRows(datas, validated, holidaySet);
 
-    final resultRows = <ResultsCompanion>[];
-    for (int idx = 0; idx < datas.length; idx++) {
-      final data = datas[idx];
-      String? levelId;
-      String calcStatus = 'invalid';
-      String calcMessage = '';
-
-      // Validate
-      final errors = <String>[];
-      if (data.documentNumber == null || data.documentNumber!.trim().isEmpty) {
-        errors.add('Document number is empty');
-      }
-      if (data.paymentPeriod == null) {
-        errors.add('Payment period is null');
-      } else if (data.paymentPeriod! < 0) {
-        errors.add('Payment period must be >= 0');
-      }
-      if (data.seasonalCode.trim().isEmpty) errors.add('Missing seasonal_code');
-      if (data.salesMethod.trim().isEmpty) errors.add('Missing sales_method');
-
-      LevelConfig? matchedLevel;
-      if (errors.isEmpty) {
-        for (final level in sortedLevels) {
-          if (data.seasonalCode.toLowerCase() == level.seasonalCode.toLowerCase() &&
-              data.salesMethod.toLowerCase() == level.salesMethod.toLowerCase() &&
-              (data.paymentPeriod ?? 0) >= level.paymentPeriod) {
-            levelId = level.id;
-            matchedLevel = level;
-            calcStatus = 'valid';
-            break;
-          }
-        }
-        if (levelId == null) {
-          calcMessage = 'No matching level config';
-        }
-      } else {
-        calcMessage = errors.join('; ');
-      }
-
-      // Calculate amounts
-      final increase = data.increase ?? 0;
-      final decrease = data.decrease ?? 0;
-      final adjustIncrease = data.adjustIncrease ?? 0;
-      final adjustDecrease = data.adjustDecrease ?? 0;
-
-      final bonusIncrease = adjustIncrease;
-      final nonBonusIncrease = increase - adjustIncrease;
-      final bonusDecrease = decrease - adjustDecrease;
-      final nonBonusDecrease = adjustDecrease;
-
-      int type;
-      if (bonusDecrease > 0 || nonBonusDecrease > 0) {
-        type = 0;
-      } else if (bonusIncrease > 0 || nonBonusIncrease > 0) {
-        type = 1;
-      } else {
-        type = -1;
-      }
-
-      // Payment due dates
-      final docDate = data.documentDate;
-      final paymentDueDate = docDate != null
-          ? docDate.add(Duration(days: data.paymentPeriod ?? 0))
-          : DateTime(1900, 1, 1);
-
-      DateTime? pdd1, pdd2, pdd3;
-      if (type == 1 && matchedLevel != null) {
-        pdd1 = matchedLevel.paymentDueDate1 ??
-            (docDate?.add(Duration(days: matchedLevel.paymentPeriod1)) ??
-                DateTime(1900, 1, 1));
-        pdd2 = matchedLevel.paymentDueDate2 ??
-            (docDate?.add(Duration(days: matchedLevel.paymentPeriod2)) ??
-                DateTime(1900, 1, 1));
-        pdd3 = matchedLevel.paymentDueDate3 ??
-            (docDate?.add(Duration(days: matchedLevel.paymentPeriod3)) ??
-                DateTime(1900, 1, 1));
-
-        pdd1 = changeDateByHolidays(pdd1, holidaySet);
-        pdd2 = changeDateByHolidays(pdd2, holidaySet);
-        pdd3 = changeDateByHolidays(pdd3, holidaySet);
-      }
-
-      resultRows.add(ResultsCompanion.insert(
-        id: _uuid.v4(),
-        mainDataId: data.id,
-        levelConfigId: Value(levelId),
-        sortedIdx: Value(0),
-        originalIdx: Value(idx),
-        type: Value(type),
-        paymentDueDate: Value(paymentDueDate),
-        bonusIncrease: Value(bonusIncrease),
-        nonBonusIncrease: Value(nonBonusIncrease),
-        bonusDecrease: Value(bonusDecrease),
-        nonBonusDecrease: Value(nonBonusDecrease),
-        paymentDueDate1: Value(pdd1),
-        paymentDueDate2: Value(pdd2),
-        paymentDueDate3: Value(pdd3),
-        calculateStatus: Value(calcStatus),
-        calculateMessage: Value(calcMessage),
-      ));
-
-      if (resultRows.length % 100 == 0) {
-        onLog('✅ Đã xử lý ${resultRows.length} dòng...');
-      }
-    }
-
-    // Batch insert results
     onLog('Lưu ${resultRows.length} kết quả...');
-    await _db.batch((batch) {
-      batch.insertAll(_db.results, resultRows);
-    });
+    await _db.batch((batch) => batch.insertAll(_db.results, resultRows));
 
-    // Step 2: Sort valid results
-    onLog('Sắp xếp kết quả...');
+    onLog('Sắp xếp...');
     onSubStep(2);
+    final validResults = await _getSortedValidResults(datas);
 
-    final allResults = await (_db.select(_db.results)
-          ..where((r) => r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1)))
-        .get();
-
-    // Need main_data for sorting
-    final dataMap = {for (final d in datas) d.id: d};
-
-    final validResults = allResults.where((r) => dataMap.containsKey(r.mainDataId)).toList();
-    validResults.sort((a, b) {
-      final da = dataMap[a.mainDataId]!;
-      final db2 = dataMap[b.mainDataId]!;
-      int cmp = da.customerCode.compareTo(db2.customerCode);
-      if (cmp != 0) return cmp;
-      cmp = da.branch.compareTo(db2.branch);
-      if (cmp != 0) return cmp;
-      cmp = da.seasonalCode.compareTo(db2.seasonalCode);
-      if (cmp != 0) return cmp;
-      cmp = a.type.compareTo(b.type);
-      if (cmp != 0) return cmp;
-      cmp = (a.paymentDueDate ?? DateTime(1900)).compareTo(b.paymentDueDate ?? DateTime(1900));
-      if (cmp != 0) return cmp;
-      cmp = b.bonusDecrease.compareTo(a.bonusDecrease);
-      if (cmp != 0) return cmp;
-      cmp = b.nonBonusDecrease.compareTo(a.nonBonusDecrease);
-      if (cmp != 0) return cmp;
-      cmp = b.bonusIncrease.compareTo(a.bonusIncrease);
-      if (cmp != 0) return cmp;
-      return b.nonBonusIncrease.compareTo(a.nonBonusIncrease);
-    });
-
-    // Update sorted_idx
     await _db.batch((batch) {
       for (int i = 0; i < validResults.length; i++) {
-        batch.update(
-          _db.results,
-          ResultsCompanion(sortedIdx: Value(i)),
-          where: (r) => r.id.equals(validResults[i].id),
-        );
+        batch.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
+            where: (r) => r.id.equals(validResults[i].id));
       }
     });
 
-    // Step 3: FIFO bonus calculation
-    onLog('Tính toán thưởng FIFO...');
+    onLog('Tính toán FIFO...');
     onSubStep(3);
-
-    String currentCustomer = '', currentBranch = '', currentSeasonal = '';
-    List<Map<String, dynamic>> beforeRemain = [];
-    int totalBonus = 0;
-
-    for (int i = 0; i < validResults.length; i++) {
-      final result = validResults[i];
-      final data = dataMap[result.mainDataId]!;
-
-      // Reset stack on group change
-      if (currentCustomer != data.customerCode ||
-          currentBranch != data.branch ||
-          currentSeasonal != data.seasonalCode) {
-        currentCustomer = data.customerCode;
-        currentBranch = data.branch;
-        currentSeasonal = data.seasonalCode;
-        beforeRemain = [];
-      }
-
-      // Skip empty document numbers
-      if (data.documentNumber == null || data.documentNumber!.isEmpty) continue;
-
-      final beforeStr = beforeRemain.toString();
-      int bonus1 = 0, bonus2 = 0, bonus3 = 0;
-
-      if (result.type == 0) {
-        // Decrease → push to stack
-        if (result.bonusDecrease > 0) {
-          beforeRemain.add({
-            'type': 'decrease',
-            'sub_type': 'bonus',
-            'amount': result.bonusDecrease,
-            'date': data.documentDate,
-          });
-        } else {
-          beforeRemain.add({
-            'type': 'decrease',
-            'sub_type': 'non_bonus',
-            'amount': result.nonBonusDecrease,
-            'date': data.documentDate,
-          });
-        }
-      } else if (result.type == 1) {
-        // Increase → consume stack
-        if (result.bonusIncrease > 0) {
-          int amount = result.bonusIncrease;
-          while (amount > 0 && beforeRemain.isNotEmpty) {
-            final first = beforeRemain[0];
-            final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
-            amount -= mi;
-            first['amount'] = (first['amount'] as int) - mi;
-
-            if (first['sub_type'] == 'bonus' && first['date'] != null) {
-              final decreaseDate = first['date'] as DateTime;
-              if (result.paymentDueDate1 != null && !decreaseDate.isAfter(result.paymentDueDate1!)) {
-                bonus1 += mi;
-              } else if (result.paymentDueDate2 != null && !decreaseDate.isAfter(result.paymentDueDate2!)) {
-                bonus2 += mi;
-              } else if (result.paymentDueDate3 != null && !decreaseDate.isAfter(result.paymentDueDate3!)) {
-                bonus3 += mi;
-              }
-            }
-
-            if ((first['amount'] as int) <= 0) {
-              beforeRemain.removeAt(0);
-            }
-          }
-        } else {
-          // non_bonus increase: consume stack without bonus
-          int amount = result.nonBonusIncrease;
-          while (amount > 0 && beforeRemain.isNotEmpty) {
-            final first = beforeRemain[0];
-            final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
-            amount -= mi;
-            first['amount'] = (first['amount'] as int) - mi;
-            if ((first['amount'] as int) <= 0) {
-              beforeRemain.removeAt(0);
-            }
-          }
-        }
-      }
-
-      totalBonus += bonus1 + bonus2 + bonus3;
-
-      // Update result
-      await (_db.update(_db.results)..where((r) => r.id.equals(result.id))).write(
-        ResultsCompanion(
-          bonus1: Value(bonus1),
-          bonus2: Value(bonus2),
-          bonus3: Value(bonus3),
-          beforeRemain: Value(beforeStr),
-          afterRemain: Value(beforeRemain.toString()),
-        ),
-      );
-
-      if ((i + 1) % 100 == 0) onLog('✅ Đã tính toán ${i + 1} dòng...');
-    }
+    final dataMap = {for (final d in datas) d.id: d};
+    final totalBonus = await _calculateFifo(validResults, dataMap, onLog);
 
     onLog('✅ Hoàn tất. Tổng thưởng: $totalBonus');
     onSubStep(4);
-
-    return {
-      'total_records': validResults.length,
-      'total_bonus': totalBonus,
-    };
+    return {'total_records': validResults.length, 'total_bonus': totalBonus};
   }
 
-  DateTime _dateOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
+  Future<List<Result>> _getSortedValidResults(List<MainData> datas) async {
+    final allResults = await (_db.select(_db.results)
+          ..where((r) => r.calculateStatus.equals('valid') & r.type.isBiggerThanValue(-1)))
+        .get();
+    final dataMap = {for (final d in datas) d.id: d};
+    final valid = allResults.where((r) => dataMap.containsKey(r.mainDataId)).toList();
+    valid.sort((a, b) {
+      final da = dataMap[a.mainDataId]!, db = dataMap[b.mainDataId]!;
+      int c = da.customerCode.compareTo(db.customerCode);
+      if (c != 0) return c;
+      c = da.branch.compareTo(db.branch);
+      if (c != 0) return c;
+      c = da.seasonalCode.compareTo(db.seasonalCode);
+      if (c != 0) return c;
+      c = a.type.compareTo(b.type);
+      if (c != 0) return c;
+      c = (a.paymentDueDate ?? DateTime(1900)).compareTo(b.paymentDueDate ?? DateTime(1900));
+      if (c != 0) return c;
+      c = b.bonusDecrease.compareTo(a.bonusDecrease);
+      if (c != 0) return c;
+      c = b.nonBonusDecrease.compareTo(a.nonBonusDecrease);
+      if (c != 0) return c;
+      c = b.bonusIncrease.compareTo(a.bonusIncrease);
+      return c != 0 ? c : b.nonBonusIncrease.compareTo(a.nonBonusIncrease);
+    });
+    return valid;
+  }
+
+  Future<int> _calculateFifo(
+    List<Result> results,
+    Map<String, MainData> dataMap,
+    void Function(String) onLog,
+  ) async {
+    String curCustomer = '', curBranch = '', curSeasonal = '';
+    List<Map<String, dynamic>> stack = [];
+    int totalBonus = 0;
+
+    for (int i = 0; i < results.length; i++) {
+      final r = results[i];
+      final data = dataMap[r.mainDataId]!;
+
+      if (curCustomer != data.customerCode || curBranch != data.branch || curSeasonal != data.seasonalCode) {
+        curCustomer = data.customerCode;
+        curBranch = data.branch;
+        curSeasonal = data.seasonalCode;
+        stack = [];
+      }
+
+      if (data.documentNumber == null || data.documentNumber!.isEmpty) continue;
+
+      final beforeStr = stack.toString();
+      int b1 = 0, b2 = 0, b3 = 0;
+
+      if (r.type == 0) {
+        stack.add({
+          'sub_type': r.bonusDecrease > 0 ? 'bonus' : 'non_bonus',
+          'amount': r.bonusDecrease > 0 ? r.bonusDecrease : r.nonBonusDecrease,
+          'date': data.documentDate,
+        });
+      } else if (r.type == 1) {
+        int amount = r.bonusIncrease > 0 ? r.bonusIncrease : r.nonBonusIncrease;
+        final isBonus = r.bonusIncrease > 0;
+        while (amount > 0 && stack.isNotEmpty) {
+          final first = stack[0];
+          final mi = amount < (first['amount'] as int) ? amount : first['amount'] as int;
+          amount -= mi;
+          first['amount'] = (first['amount'] as int) - mi;
+
+          if (isBonus && first['sub_type'] == 'bonus' && first['date'] != null) {
+            final d = first['date'] as DateTime;
+            if (r.paymentDueDate1 != null && !d.isAfter(r.paymentDueDate1!)) {
+              b1 += mi;
+            } else if (r.paymentDueDate2 != null && !d.isAfter(r.paymentDueDate2!)) {
+              b2 += mi;
+            } else if (r.paymentDueDate3 != null && !d.isAfter(r.paymentDueDate3!)) {
+              b3 += mi;
+            }
+          }
+          if ((first['amount'] as int) <= 0) stack.removeAt(0);
+        }
+      }
+
+      totalBonus += b1 + b2 + b3;
+      await (_db.update(_db.results)..where((t) => t.id.equals(r.id))).write(
+        ResultsCompanion(bonus1: Value(b1), bonus2: Value(b2), bonus3: Value(b3),
+            beforeRemain: Value(beforeStr), afterRemain: Value(stack.toString())),
+      );
+      if ((i + 1) % 100 == 0) onLog('✅ Đã tính ${i + 1} dòng...');
+    }
+    return totalBonus;
+  }
 }
