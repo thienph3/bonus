@@ -1,6 +1,6 @@
-# Bonus Calculator - Tính chiết khấu thanh toán đúng hạn
+# Debt Matching - Tính chiết khấu thanh toán đúng hạn
 
-Ứng dụng desktop (PyQt6) hỗ trợ kế toán tính **chiết khấu thanh toán đúng hạn** trên TK 131 (Phải thu khách hàng), dựa trên đối trừ công nợ FIFO.
+Ứng dụng desktop (Flutter/Windows) hỗ trợ kế toán tính **chiết khấu thanh toán đúng hạn** trên TK 131 (Phải thu khách hàng), dựa trên đối trừ công nợ FIFO.
 
 ## Nghiệp vụ
 
@@ -25,17 +25,22 @@ Chi tiết thuật toán xem [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md).
 2. **Tính toán** — Validate, mapping level, sort, đối trừ FIFO, tính bonus
 3. **Xuất kết quả** — Export Excel có format
 
-## Cài đặt
+## Cài đặt & Chạy
 
 ```bash
-python -m venv env
-source env/bin/activate  # Linux/macOS | env\Scripts\activate (Windows)
-pip install -r requirements.txt
-python models/init_model.py
-python app.py
+cd debt_matching
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter run -d windows
 ```
 
-Yêu cầu: Python 3.8+, PyQt6, pandas, SQLAlchemy, openpyxl, xlsxwriter
+### Build exe
+```bash
+flutter build windows
+# Output: build/windows/x64/runner/Release/
+```
+
+Yêu cầu: Flutter SDK (stable), Windows
 
 ## Tài liệu
 
@@ -45,5 +50,4 @@ Yêu cầu: Python 3.8+, PyQt6, pandas, SQLAlchemy, openpyxl, xlsxwriter
 | [docs/LOGIC_IMPORT.md](docs/LOGIC_IMPORT.md) | Logic import dữ liệu |
 | [docs/LOGIC_EXPORT.md](docs/LOGIC_EXPORT.md) | Logic export kết quả |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema database |
-| [QUICK_START.md](QUICK_START.md) | Hướng dẫn cài đặt chi tiết |
-| [QUICK_BUILD.md](QUICK_BUILD.md) | Build file .exe (PyInstaller) |
+| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Known issues (đã fix trong Flutter version) |
