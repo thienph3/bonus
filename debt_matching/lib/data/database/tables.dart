@@ -81,3 +81,30 @@ class Results extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class RunHistories extends Table {
+  TextColumn get id => text()();
+  DateTimeColumn get timestamp => dateTime()();
+  TextColumn get filePath => text().withDefault(const Constant(''))();
+  IntColumn get recordCount => integer().withDefault(const Constant(0))();
+  IntColumn get levelCount => integer().withDefault(const Constant(0))();
+  IntColumn get holidayCount => integer().withDefault(const Constant(0))();
+  IntColumn get totalBonus => integer().withDefault(const Constant(0))();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class MatchingDetails extends Table {
+  TextColumn get id => text()();
+  TextColumn get resultId => text().references(Results, #id)();
+  TextColumn get increaseDocNumber => text().withDefault(const Constant(''))();
+  TextColumn get decreaseDocNumber => text().withDefault(const Constant(''))();
+  DateTimeColumn get decreaseDate => dateTime().nullable()();
+  IntColumn get amountMatched => integer().withDefault(const Constant(0))();
+  TextColumn get bonusTier => text().withDefault(const Constant(''))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

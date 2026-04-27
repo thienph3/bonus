@@ -12,6 +12,8 @@ part 'app_database.g.dart';
   LevelConfigs,
   MainDatas,
   Results,
+  RunHistories,
+  MatchingDetails,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());

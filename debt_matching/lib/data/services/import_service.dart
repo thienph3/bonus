@@ -20,6 +20,7 @@ class ImportService {
 
     onLog('🗑️ Xóa dữ liệu cũ...');
     await _db.delete(_db.results).go();
+    await _db.delete(_db.matchingDetails).go();
     await _db.delete(_db.mainDatas).go();
     await _db.delete(_db.levelConfigs).go();
     await _db.delete(_db.holidayConfigs).go();
@@ -27,6 +28,17 @@ class ImportService {
     final holidayCount = await _importHolidayConfig(excel, onLog);
     final levelCount = await _importLevelConfig(excel, onLog);
     final mainDataCount = await _mainDataImporter.import(excel, onLog);
+
+    // Save run history
+    await _db.into(_db.runHistories).insert(RunHistoriesCompanion.insert(
+      id: _uuid.v4(),
+      timestamp: DateTime.now(),
+      filePath: Value(filePath),
+      recordCount: Value(mainDataCount),
+      levelCount: Value(levelCount),
+      holidayCount: Value(holidayCount),
+      status: const Value('imported'),
+    ));
 
     return {'holidays': holidayCount, 'levels': levelCount, 'records': mainDataCount};
   }

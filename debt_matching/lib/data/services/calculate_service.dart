@@ -29,6 +29,8 @@ class CalculateService {
     return await _db.transaction(() async {
       onLog('Xóa kết quả cũ...');
       await _db.delete(_db.results).go();
+      await _db.delete(_db.matchingDetails).go();
+
       onLog('Validate & tạo kết quả...');
       onSubStep(1);
       final validated = _builder.validateAndMap(datas, sortedLevels);
@@ -40,7 +42,6 @@ class CalculateService {
       onLog('Sắp xếp...');
       onSubStep(2);
       final validResults = await _getSortedValidResults(datas);
-
       await _db.batch((batch) {
         for (int i = 0; i < validResults.length; i++) {
           batch.update(_db.results, ResultsCompanion(sortedIdx: Value(i)),
@@ -52,11 +53,40 @@ class CalculateService {
       onSubStep(3);
       final dataMap = {for (final d in datas) d.id: d};
       final fifo = CalculateFifo(_db);
-      final totalBonus = await fifo.run(validResults, dataMap, onLog);
+      final fifoResult = await fifo.run(validResults, dataMap, onLog);
 
-      onLog('✅ Hoàn tất. Tổng thưởng: $totalBonus');
+      // Reconciliation
+      onLog('--- Reconciliation ---');
+      onLog('Tổng pushed: ${fifoResult.totalPushed}');
+      onLog('Tổng consumed: ${fifoResult.totalConsumed}');
+      onLog('Tổng remaining: ${fifoResult.totalRemaining}');
+      final diff = fifoResult.totalPushed - fifoResult.totalConsumed - fifoResult.totalRemaining;
+      if (diff != 0) {
+        onLog('⚠️ MISMATCH: $diff');
+      } else {
+        onLog('✅ Reconciliation OK');
+      }
+
+      // Update latest run_history
+      final latestRun = await (_db.select(_db.runHistories)
+            ..orderBy([(t) => OrderingTerm.desc(t.timestamp)])
+            ..limit(1))
+          .getSingleOrNull();
+      if (latestRun != null) {
+        await (_db.update(_db.runHistories)..where((t) => t.id.equals(latestRun.id)))
+            .write(RunHistoriesCompanion(
+                totalBonus: Value(fifoResult.totalBonus), status: const Value('completed')));
+      }
+
+      onLog('✅ Hoàn tất. Tổng thưởng: ${fifoResult.totalBonus}');
       onSubStep(4);
-      return {'total_records': validResults.length, 'total_bonus': totalBonus};
+      return {
+        'total_records': validResults.length,
+        'total_bonus': fifoResult.totalBonus,
+        'total_pushed': fifoResult.totalPushed,
+        'total_consumed': fifoResult.totalConsumed,
+        'total_remaining': fifoResult.totalRemaining,
+      };
     });
   }
 

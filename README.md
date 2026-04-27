@@ -17,6 +17,8 @@ Hệ thống gom toàn bộ khoản thanh toán vào stack FIFO theo nhóm (khá
 | Ngày thanh toán ≤ Ngày mua + period_3 (VD: 60 ngày) | bonus_3 |
 | Vượt quá tất cả | Không thưởng |
 
+> **Lưu ý:** bonus_1/2/3 = **số tiền đủ điều kiện thưởng** ở mỗi tier, không phải tiền thưởng thực tế. Bộ phận chính sách sẽ nhân % chiết khấu tương ứng để ra số tiền thưởng cuối cùng.
+
 Chi tiết thuật toán xem [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md).
 
 ## Workflow

@@ -3243,6 +3243,1000 @@ class ResultsCompanion extends UpdateCompanion<Result> {
   }
 }
 
+class $RunHistoriesTable extends RunHistories
+    with TableInfo<$RunHistoriesTable, RunHistory> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RunHistoriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _timestampMeta = const VerificationMeta(
+    'timestamp',
+  );
+  @override
+  late final GeneratedColumn<DateTime> timestamp = GeneratedColumn<DateTime>(
+    'timestamp',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _filePathMeta = const VerificationMeta(
+    'filePath',
+  );
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+    'file_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _recordCountMeta = const VerificationMeta(
+    'recordCount',
+  );
+  @override
+  late final GeneratedColumn<int> recordCount = GeneratedColumn<int>(
+    'record_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _levelCountMeta = const VerificationMeta(
+    'levelCount',
+  );
+  @override
+  late final GeneratedColumn<int> levelCount = GeneratedColumn<int>(
+    'level_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _holidayCountMeta = const VerificationMeta(
+    'holidayCount',
+  );
+  @override
+  late final GeneratedColumn<int> holidayCount = GeneratedColumn<int>(
+    'holiday_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _totalBonusMeta = const VerificationMeta(
+    'totalBonus',
+  );
+  @override
+  late final GeneratedColumn<int> totalBonus = GeneratedColumn<int>(
+    'total_bonus',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    timestamp,
+    filePath,
+    recordCount,
+    levelCount,
+    holidayCount,
+    totalBonus,
+    status,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'run_histories';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RunHistory> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('timestamp')) {
+      context.handle(
+        _timestampMeta,
+        timestamp.isAcceptableOrUnknown(data['timestamp']!, _timestampMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timestampMeta);
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(
+        _filePathMeta,
+        filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta),
+      );
+    }
+    if (data.containsKey('record_count')) {
+      context.handle(
+        _recordCountMeta,
+        recordCount.isAcceptableOrUnknown(
+          data['record_count']!,
+          _recordCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('level_count')) {
+      context.handle(
+        _levelCountMeta,
+        levelCount.isAcceptableOrUnknown(data['level_count']!, _levelCountMeta),
+      );
+    }
+    if (data.containsKey('holiday_count')) {
+      context.handle(
+        _holidayCountMeta,
+        holidayCount.isAcceptableOrUnknown(
+          data['holiday_count']!,
+          _holidayCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('total_bonus')) {
+      context.handle(
+        _totalBonusMeta,
+        totalBonus.isAcceptableOrUnknown(data['total_bonus']!, _totalBonusMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RunHistory map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RunHistory(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      timestamp: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}timestamp'],
+      )!,
+      filePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_path'],
+      )!,
+      recordCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}record_count'],
+      )!,
+      levelCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}level_count'],
+      )!,
+      holidayCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}holiday_count'],
+      )!,
+      totalBonus: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}total_bonus'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $RunHistoriesTable createAlias(String alias) {
+    return $RunHistoriesTable(attachedDatabase, alias);
+  }
+}
+
+class RunHistory extends DataClass implements Insertable<RunHistory> {
+  final String id;
+  final DateTime timestamp;
+  final String filePath;
+  final int recordCount;
+  final int levelCount;
+  final int holidayCount;
+  final int totalBonus;
+  final String status;
+  const RunHistory({
+    required this.id,
+    required this.timestamp,
+    required this.filePath,
+    required this.recordCount,
+    required this.levelCount,
+    required this.holidayCount,
+    required this.totalBonus,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['timestamp'] = Variable<DateTime>(timestamp);
+    map['file_path'] = Variable<String>(filePath);
+    map['record_count'] = Variable<int>(recordCount);
+    map['level_count'] = Variable<int>(levelCount);
+    map['holiday_count'] = Variable<int>(holidayCount);
+    map['total_bonus'] = Variable<int>(totalBonus);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  RunHistoriesCompanion toCompanion(bool nullToAbsent) {
+    return RunHistoriesCompanion(
+      id: Value(id),
+      timestamp: Value(timestamp),
+      filePath: Value(filePath),
+      recordCount: Value(recordCount),
+      levelCount: Value(levelCount),
+      holidayCount: Value(holidayCount),
+      totalBonus: Value(totalBonus),
+      status: Value(status),
+    );
+  }
+
+  factory RunHistory.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RunHistory(
+      id: serializer.fromJson<String>(json['id']),
+      timestamp: serializer.fromJson<DateTime>(json['timestamp']),
+      filePath: serializer.fromJson<String>(json['filePath']),
+      recordCount: serializer.fromJson<int>(json['recordCount']),
+      levelCount: serializer.fromJson<int>(json['levelCount']),
+      holidayCount: serializer.fromJson<int>(json['holidayCount']),
+      totalBonus: serializer.fromJson<int>(json['totalBonus']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'timestamp': serializer.toJson<DateTime>(timestamp),
+      'filePath': serializer.toJson<String>(filePath),
+      'recordCount': serializer.toJson<int>(recordCount),
+      'levelCount': serializer.toJson<int>(levelCount),
+      'holidayCount': serializer.toJson<int>(holidayCount),
+      'totalBonus': serializer.toJson<int>(totalBonus),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  RunHistory copyWith({
+    String? id,
+    DateTime? timestamp,
+    String? filePath,
+    int? recordCount,
+    int? levelCount,
+    int? holidayCount,
+    int? totalBonus,
+    String? status,
+  }) => RunHistory(
+    id: id ?? this.id,
+    timestamp: timestamp ?? this.timestamp,
+    filePath: filePath ?? this.filePath,
+    recordCount: recordCount ?? this.recordCount,
+    levelCount: levelCount ?? this.levelCount,
+    holidayCount: holidayCount ?? this.holidayCount,
+    totalBonus: totalBonus ?? this.totalBonus,
+    status: status ?? this.status,
+  );
+  RunHistory copyWithCompanion(RunHistoriesCompanion data) {
+    return RunHistory(
+      id: data.id.present ? data.id.value : this.id,
+      timestamp: data.timestamp.present ? data.timestamp.value : this.timestamp,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      recordCount: data.recordCount.present
+          ? data.recordCount.value
+          : this.recordCount,
+      levelCount: data.levelCount.present
+          ? data.levelCount.value
+          : this.levelCount,
+      holidayCount: data.holidayCount.present
+          ? data.holidayCount.value
+          : this.holidayCount,
+      totalBonus: data.totalBonus.present
+          ? data.totalBonus.value
+          : this.totalBonus,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunHistory(')
+          ..write('id: $id, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('filePath: $filePath, ')
+          ..write('recordCount: $recordCount, ')
+          ..write('levelCount: $levelCount, ')
+          ..write('holidayCount: $holidayCount, ')
+          ..write('totalBonus: $totalBonus, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    timestamp,
+    filePath,
+    recordCount,
+    levelCount,
+    holidayCount,
+    totalBonus,
+    status,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RunHistory &&
+          other.id == this.id &&
+          other.timestamp == this.timestamp &&
+          other.filePath == this.filePath &&
+          other.recordCount == this.recordCount &&
+          other.levelCount == this.levelCount &&
+          other.holidayCount == this.holidayCount &&
+          other.totalBonus == this.totalBonus &&
+          other.status == this.status);
+}
+
+class RunHistoriesCompanion extends UpdateCompanion<RunHistory> {
+  final Value<String> id;
+  final Value<DateTime> timestamp;
+  final Value<String> filePath;
+  final Value<int> recordCount;
+  final Value<int> levelCount;
+  final Value<int> holidayCount;
+  final Value<int> totalBonus;
+  final Value<String> status;
+  final Value<int> rowid;
+  const RunHistoriesCompanion({
+    this.id = const Value.absent(),
+    this.timestamp = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.recordCount = const Value.absent(),
+    this.levelCount = const Value.absent(),
+    this.holidayCount = const Value.absent(),
+    this.totalBonus = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RunHistoriesCompanion.insert({
+    required String id,
+    required DateTime timestamp,
+    this.filePath = const Value.absent(),
+    this.recordCount = const Value.absent(),
+    this.levelCount = const Value.absent(),
+    this.holidayCount = const Value.absent(),
+    this.totalBonus = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       timestamp = Value(timestamp);
+  static Insertable<RunHistory> custom({
+    Expression<String>? id,
+    Expression<DateTime>? timestamp,
+    Expression<String>? filePath,
+    Expression<int>? recordCount,
+    Expression<int>? levelCount,
+    Expression<int>? holidayCount,
+    Expression<int>? totalBonus,
+    Expression<String>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (timestamp != null) 'timestamp': timestamp,
+      if (filePath != null) 'file_path': filePath,
+      if (recordCount != null) 'record_count': recordCount,
+      if (levelCount != null) 'level_count': levelCount,
+      if (holidayCount != null) 'holiday_count': holidayCount,
+      if (totalBonus != null) 'total_bonus': totalBonus,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RunHistoriesCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? timestamp,
+    Value<String>? filePath,
+    Value<int>? recordCount,
+    Value<int>? levelCount,
+    Value<int>? holidayCount,
+    Value<int>? totalBonus,
+    Value<String>? status,
+    Value<int>? rowid,
+  }) {
+    return RunHistoriesCompanion(
+      id: id ?? this.id,
+      timestamp: timestamp ?? this.timestamp,
+      filePath: filePath ?? this.filePath,
+      recordCount: recordCount ?? this.recordCount,
+      levelCount: levelCount ?? this.levelCount,
+      holidayCount: holidayCount ?? this.holidayCount,
+      totalBonus: totalBonus ?? this.totalBonus,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (timestamp.present) {
+      map['timestamp'] = Variable<DateTime>(timestamp.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (recordCount.present) {
+      map['record_count'] = Variable<int>(recordCount.value);
+    }
+    if (levelCount.present) {
+      map['level_count'] = Variable<int>(levelCount.value);
+    }
+    if (holidayCount.present) {
+      map['holiday_count'] = Variable<int>(holidayCount.value);
+    }
+    if (totalBonus.present) {
+      map['total_bonus'] = Variable<int>(totalBonus.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RunHistoriesCompanion(')
+          ..write('id: $id, ')
+          ..write('timestamp: $timestamp, ')
+          ..write('filePath: $filePath, ')
+          ..write('recordCount: $recordCount, ')
+          ..write('levelCount: $levelCount, ')
+          ..write('holidayCount: $holidayCount, ')
+          ..write('totalBonus: $totalBonus, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $MatchingDetailsTable extends MatchingDetails
+    with TableInfo<$MatchingDetailsTable, MatchingDetail> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MatchingDetailsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _resultIdMeta = const VerificationMeta(
+    'resultId',
+  );
+  @override
+  late final GeneratedColumn<String> resultId = GeneratedColumn<String>(
+    'result_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES results (id)',
+    ),
+  );
+  static const VerificationMeta _increaseDocNumberMeta = const VerificationMeta(
+    'increaseDocNumber',
+  );
+  @override
+  late final GeneratedColumn<String> increaseDocNumber =
+      GeneratedColumn<String>(
+        'increase_doc_number',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(''),
+      );
+  static const VerificationMeta _decreaseDocNumberMeta = const VerificationMeta(
+    'decreaseDocNumber',
+  );
+  @override
+  late final GeneratedColumn<String> decreaseDocNumber =
+      GeneratedColumn<String>(
+        'decrease_doc_number',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: const Constant(''),
+      );
+  static const VerificationMeta _decreaseDateMeta = const VerificationMeta(
+    'decreaseDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> decreaseDate = GeneratedColumn<DateTime>(
+    'decrease_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _amountMatchedMeta = const VerificationMeta(
+    'amountMatched',
+  );
+  @override
+  late final GeneratedColumn<int> amountMatched = GeneratedColumn<int>(
+    'amount_matched',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _bonusTierMeta = const VerificationMeta(
+    'bonusTier',
+  );
+  @override
+  late final GeneratedColumn<String> bonusTier = GeneratedColumn<String>(
+    'bonus_tier',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    resultId,
+    increaseDocNumber,
+    decreaseDocNumber,
+    decreaseDate,
+    amountMatched,
+    bonusTier,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'matching_details';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MatchingDetail> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('result_id')) {
+      context.handle(
+        _resultIdMeta,
+        resultId.isAcceptableOrUnknown(data['result_id']!, _resultIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_resultIdMeta);
+    }
+    if (data.containsKey('increase_doc_number')) {
+      context.handle(
+        _increaseDocNumberMeta,
+        increaseDocNumber.isAcceptableOrUnknown(
+          data['increase_doc_number']!,
+          _increaseDocNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decrease_doc_number')) {
+      context.handle(
+        _decreaseDocNumberMeta,
+        decreaseDocNumber.isAcceptableOrUnknown(
+          data['decrease_doc_number']!,
+          _decreaseDocNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decrease_date')) {
+      context.handle(
+        _decreaseDateMeta,
+        decreaseDate.isAcceptableOrUnknown(
+          data['decrease_date']!,
+          _decreaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('amount_matched')) {
+      context.handle(
+        _amountMatchedMeta,
+        amountMatched.isAcceptableOrUnknown(
+          data['amount_matched']!,
+          _amountMatchedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bonus_tier')) {
+      context.handle(
+        _bonusTierMeta,
+        bonusTier.isAcceptableOrUnknown(data['bonus_tier']!, _bonusTierMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MatchingDetail map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MatchingDetail(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      resultId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}result_id'],
+      )!,
+      increaseDocNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}increase_doc_number'],
+      )!,
+      decreaseDocNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decrease_doc_number'],
+      )!,
+      decreaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}decrease_date'],
+      ),
+      amountMatched: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_matched'],
+      )!,
+      bonusTier: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bonus_tier'],
+      )!,
+    );
+  }
+
+  @override
+  $MatchingDetailsTable createAlias(String alias) {
+    return $MatchingDetailsTable(attachedDatabase, alias);
+  }
+}
+
+class MatchingDetail extends DataClass implements Insertable<MatchingDetail> {
+  final String id;
+  final String resultId;
+  final String increaseDocNumber;
+  final String decreaseDocNumber;
+  final DateTime? decreaseDate;
+  final int amountMatched;
+  final String bonusTier;
+  const MatchingDetail({
+    required this.id,
+    required this.resultId,
+    required this.increaseDocNumber,
+    required this.decreaseDocNumber,
+    this.decreaseDate,
+    required this.amountMatched,
+    required this.bonusTier,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['result_id'] = Variable<String>(resultId);
+    map['increase_doc_number'] = Variable<String>(increaseDocNumber);
+    map['decrease_doc_number'] = Variable<String>(decreaseDocNumber);
+    if (!nullToAbsent || decreaseDate != null) {
+      map['decrease_date'] = Variable<DateTime>(decreaseDate);
+    }
+    map['amount_matched'] = Variable<int>(amountMatched);
+    map['bonus_tier'] = Variable<String>(bonusTier);
+    return map;
+  }
+
+  MatchingDetailsCompanion toCompanion(bool nullToAbsent) {
+    return MatchingDetailsCompanion(
+      id: Value(id),
+      resultId: Value(resultId),
+      increaseDocNumber: Value(increaseDocNumber),
+      decreaseDocNumber: Value(decreaseDocNumber),
+      decreaseDate: decreaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decreaseDate),
+      amountMatched: Value(amountMatched),
+      bonusTier: Value(bonusTier),
+    );
+  }
+
+  factory MatchingDetail.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MatchingDetail(
+      id: serializer.fromJson<String>(json['id']),
+      resultId: serializer.fromJson<String>(json['resultId']),
+      increaseDocNumber: serializer.fromJson<String>(json['increaseDocNumber']),
+      decreaseDocNumber: serializer.fromJson<String>(json['decreaseDocNumber']),
+      decreaseDate: serializer.fromJson<DateTime?>(json['decreaseDate']),
+      amountMatched: serializer.fromJson<int>(json['amountMatched']),
+      bonusTier: serializer.fromJson<String>(json['bonusTier']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'resultId': serializer.toJson<String>(resultId),
+      'increaseDocNumber': serializer.toJson<String>(increaseDocNumber),
+      'decreaseDocNumber': serializer.toJson<String>(decreaseDocNumber),
+      'decreaseDate': serializer.toJson<DateTime?>(decreaseDate),
+      'amountMatched': serializer.toJson<int>(amountMatched),
+      'bonusTier': serializer.toJson<String>(bonusTier),
+    };
+  }
+
+  MatchingDetail copyWith({
+    String? id,
+    String? resultId,
+    String? increaseDocNumber,
+    String? decreaseDocNumber,
+    Value<DateTime?> decreaseDate = const Value.absent(),
+    int? amountMatched,
+    String? bonusTier,
+  }) => MatchingDetail(
+    id: id ?? this.id,
+    resultId: resultId ?? this.resultId,
+    increaseDocNumber: increaseDocNumber ?? this.increaseDocNumber,
+    decreaseDocNumber: decreaseDocNumber ?? this.decreaseDocNumber,
+    decreaseDate: decreaseDate.present ? decreaseDate.value : this.decreaseDate,
+    amountMatched: amountMatched ?? this.amountMatched,
+    bonusTier: bonusTier ?? this.bonusTier,
+  );
+  MatchingDetail copyWithCompanion(MatchingDetailsCompanion data) {
+    return MatchingDetail(
+      id: data.id.present ? data.id.value : this.id,
+      resultId: data.resultId.present ? data.resultId.value : this.resultId,
+      increaseDocNumber: data.increaseDocNumber.present
+          ? data.increaseDocNumber.value
+          : this.increaseDocNumber,
+      decreaseDocNumber: data.decreaseDocNumber.present
+          ? data.decreaseDocNumber.value
+          : this.decreaseDocNumber,
+      decreaseDate: data.decreaseDate.present
+          ? data.decreaseDate.value
+          : this.decreaseDate,
+      amountMatched: data.amountMatched.present
+          ? data.amountMatched.value
+          : this.amountMatched,
+      bonusTier: data.bonusTier.present ? data.bonusTier.value : this.bonusTier,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MatchingDetail(')
+          ..write('id: $id, ')
+          ..write('resultId: $resultId, ')
+          ..write('increaseDocNumber: $increaseDocNumber, ')
+          ..write('decreaseDocNumber: $decreaseDocNumber, ')
+          ..write('decreaseDate: $decreaseDate, ')
+          ..write('amountMatched: $amountMatched, ')
+          ..write('bonusTier: $bonusTier')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    resultId,
+    increaseDocNumber,
+    decreaseDocNumber,
+    decreaseDate,
+    amountMatched,
+    bonusTier,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MatchingDetail &&
+          other.id == this.id &&
+          other.resultId == this.resultId &&
+          other.increaseDocNumber == this.increaseDocNumber &&
+          other.decreaseDocNumber == this.decreaseDocNumber &&
+          other.decreaseDate == this.decreaseDate &&
+          other.amountMatched == this.amountMatched &&
+          other.bonusTier == this.bonusTier);
+}
+
+class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
+  final Value<String> id;
+  final Value<String> resultId;
+  final Value<String> increaseDocNumber;
+  final Value<String> decreaseDocNumber;
+  final Value<DateTime?> decreaseDate;
+  final Value<int> amountMatched;
+  final Value<String> bonusTier;
+  final Value<int> rowid;
+  const MatchingDetailsCompanion({
+    this.id = const Value.absent(),
+    this.resultId = const Value.absent(),
+    this.increaseDocNumber = const Value.absent(),
+    this.decreaseDocNumber = const Value.absent(),
+    this.decreaseDate = const Value.absent(),
+    this.amountMatched = const Value.absent(),
+    this.bonusTier = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MatchingDetailsCompanion.insert({
+    required String id,
+    required String resultId,
+    this.increaseDocNumber = const Value.absent(),
+    this.decreaseDocNumber = const Value.absent(),
+    this.decreaseDate = const Value.absent(),
+    this.amountMatched = const Value.absent(),
+    this.bonusTier = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       resultId = Value(resultId);
+  static Insertable<MatchingDetail> custom({
+    Expression<String>? id,
+    Expression<String>? resultId,
+    Expression<String>? increaseDocNumber,
+    Expression<String>? decreaseDocNumber,
+    Expression<DateTime>? decreaseDate,
+    Expression<int>? amountMatched,
+    Expression<String>? bonusTier,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (resultId != null) 'result_id': resultId,
+      if (increaseDocNumber != null) 'increase_doc_number': increaseDocNumber,
+      if (decreaseDocNumber != null) 'decrease_doc_number': decreaseDocNumber,
+      if (decreaseDate != null) 'decrease_date': decreaseDate,
+      if (amountMatched != null) 'amount_matched': amountMatched,
+      if (bonusTier != null) 'bonus_tier': bonusTier,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MatchingDetailsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? resultId,
+    Value<String>? increaseDocNumber,
+    Value<String>? decreaseDocNumber,
+    Value<DateTime?>? decreaseDate,
+    Value<int>? amountMatched,
+    Value<String>? bonusTier,
+    Value<int>? rowid,
+  }) {
+    return MatchingDetailsCompanion(
+      id: id ?? this.id,
+      resultId: resultId ?? this.resultId,
+      increaseDocNumber: increaseDocNumber ?? this.increaseDocNumber,
+      decreaseDocNumber: decreaseDocNumber ?? this.decreaseDocNumber,
+      decreaseDate: decreaseDate ?? this.decreaseDate,
+      amountMatched: amountMatched ?? this.amountMatched,
+      bonusTier: bonusTier ?? this.bonusTier,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (resultId.present) {
+      map['result_id'] = Variable<String>(resultId.value);
+    }
+    if (increaseDocNumber.present) {
+      map['increase_doc_number'] = Variable<String>(increaseDocNumber.value);
+    }
+    if (decreaseDocNumber.present) {
+      map['decrease_doc_number'] = Variable<String>(decreaseDocNumber.value);
+    }
+    if (decreaseDate.present) {
+      map['decrease_date'] = Variable<DateTime>(decreaseDate.value);
+    }
+    if (amountMatched.present) {
+      map['amount_matched'] = Variable<int>(amountMatched.value);
+    }
+    if (bonusTier.present) {
+      map['bonus_tier'] = Variable<String>(bonusTier.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MatchingDetailsCompanion(')
+          ..write('id: $id, ')
+          ..write('resultId: $resultId, ')
+          ..write('increaseDocNumber: $increaseDocNumber, ')
+          ..write('decreaseDocNumber: $decreaseDocNumber, ')
+          ..write('decreaseDate: $decreaseDate, ')
+          ..write('amountMatched: $amountMatched, ')
+          ..write('bonusTier: $bonusTier, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3250,6 +4244,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LevelConfigsTable levelConfigs = $LevelConfigsTable(this);
   late final $MainDatasTable mainDatas = $MainDatasTable(this);
   late final $ResultsTable results = $ResultsTable(this);
+  late final $RunHistoriesTable runHistories = $RunHistoriesTable(this);
+  late final $MatchingDetailsTable matchingDetails = $MatchingDetailsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3259,6 +4257,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     levelConfigs,
     mainDatas,
     results,
+    runHistories,
+    matchingDetails,
   ];
 }
 
@@ -4526,6 +5526,26 @@ final class $$ResultsTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$MatchingDetailsTable, List<MatchingDetail>>
+  _matchingDetailsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.matchingDetails,
+    aliasName: $_aliasNameGenerator(db.results.id, db.matchingDetails.resultId),
+  );
+
+  $$MatchingDetailsTableProcessedTableManager get matchingDetailsRefs {
+    final manager = $$MatchingDetailsTableTableManager(
+      $_db,
+      $_db.matchingDetails,
+    ).filter((f) => f.resultId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _matchingDetailsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ResultsTableFilterComposer
@@ -4676,6 +5696,31 @@ class $$ResultsTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> matchingDetailsRefs(
+    Expression<bool> Function($$MatchingDetailsTableFilterComposer f) f,
+  ) {
+    final $$MatchingDetailsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchingDetails,
+      getReferencedColumn: (t) => t.resultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchingDetailsTableFilterComposer(
+            $db: $db,
+            $table: $db.matchingDetails,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -4967,6 +6012,31 @@ class $$ResultsTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> matchingDetailsRefs<T extends Object>(
+    Expression<T> Function($$MatchingDetailsTableAnnotationComposer a) f,
+  ) {
+    final $$MatchingDetailsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.matchingDetails,
+      getReferencedColumn: (t) => t.resultId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$MatchingDetailsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.matchingDetails,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ResultsTableTableManager
@@ -4982,7 +6052,11 @@ class $$ResultsTableTableManager
           $$ResultsTableUpdateCompanionBuilder,
           (Result, $$ResultsTableReferences),
           Result,
-          PrefetchHooks Function({bool mainDataId, bool levelConfigId})
+          PrefetchHooks Function({
+            bool mainDataId,
+            bool levelConfigId,
+            bool matchingDetailsRefs,
+          })
         > {
   $$ResultsTableTableManager(_$AppDatabase db, $ResultsTable table)
     : super(
@@ -5099,7 +6173,690 @@ class $$ResultsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({mainDataId = false, levelConfigId = false}) {
+          prefetchHooksCallback:
+              ({
+                mainDataId = false,
+                levelConfigId = false,
+                matchingDetailsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (matchingDetailsRefs) db.matchingDetails,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (mainDataId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.mainDataId,
+                                    referencedTable: $$ResultsTableReferences
+                                        ._mainDataIdTable(db),
+                                    referencedColumn: $$ResultsTableReferences
+                                        ._mainDataIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+                        if (levelConfigId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.levelConfigId,
+                                    referencedTable: $$ResultsTableReferences
+                                        ._levelConfigIdTable(db),
+                                    referencedColumn: $$ResultsTableReferences
+                                        ._levelConfigIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (matchingDetailsRefs)
+                        await $_getPrefetchedData<
+                          Result,
+                          $ResultsTable,
+                          MatchingDetail
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ResultsTableReferences
+                              ._matchingDetailsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ResultsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).matchingDetailsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.resultId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$ResultsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ResultsTable,
+      Result,
+      $$ResultsTableFilterComposer,
+      $$ResultsTableOrderingComposer,
+      $$ResultsTableAnnotationComposer,
+      $$ResultsTableCreateCompanionBuilder,
+      $$ResultsTableUpdateCompanionBuilder,
+      (Result, $$ResultsTableReferences),
+      Result,
+      PrefetchHooks Function({
+        bool mainDataId,
+        bool levelConfigId,
+        bool matchingDetailsRefs,
+      })
+    >;
+typedef $$RunHistoriesTableCreateCompanionBuilder =
+    RunHistoriesCompanion Function({
+      required String id,
+      required DateTime timestamp,
+      Value<String> filePath,
+      Value<int> recordCount,
+      Value<int> levelCount,
+      Value<int> holidayCount,
+      Value<int> totalBonus,
+      Value<String> status,
+      Value<int> rowid,
+    });
+typedef $$RunHistoriesTableUpdateCompanionBuilder =
+    RunHistoriesCompanion Function({
+      Value<String> id,
+      Value<DateTime> timestamp,
+      Value<String> filePath,
+      Value<int> recordCount,
+      Value<int> levelCount,
+      Value<int> holidayCount,
+      Value<int> totalBonus,
+      Value<String> status,
+      Value<int> rowid,
+    });
+
+class $$RunHistoriesTableFilterComposer
+    extends Composer<_$AppDatabase, $RunHistoriesTable> {
+  $$RunHistoriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get levelCount => $composableBuilder(
+    column: $table.levelCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get holidayCount => $composableBuilder(
+    column: $table.holidayCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get totalBonus => $composableBuilder(
+    column: $table.totalBonus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RunHistoriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RunHistoriesTable> {
+  $$RunHistoriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get timestamp => $composableBuilder(
+    column: $table.timestamp,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get levelCount => $composableBuilder(
+    column: $table.levelCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get holidayCount => $composableBuilder(
+    column: $table.holidayCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get totalBonus => $composableBuilder(
+    column: $table.totalBonus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RunHistoriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RunHistoriesTable> {
+  $$RunHistoriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get timestamp =>
+      $composableBuilder(column: $table.timestamp, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<int> get recordCount => $composableBuilder(
+    column: $table.recordCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get levelCount => $composableBuilder(
+    column: $table.levelCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get holidayCount => $composableBuilder(
+    column: $table.holidayCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get totalBonus => $composableBuilder(
+    column: $table.totalBonus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$RunHistoriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RunHistoriesTable,
+          RunHistory,
+          $$RunHistoriesTableFilterComposer,
+          $$RunHistoriesTableOrderingComposer,
+          $$RunHistoriesTableAnnotationComposer,
+          $$RunHistoriesTableCreateCompanionBuilder,
+          $$RunHistoriesTableUpdateCompanionBuilder,
+          (
+            RunHistory,
+            BaseReferences<_$AppDatabase, $RunHistoriesTable, RunHistory>,
+          ),
+          RunHistory,
+          PrefetchHooks Function()
+        > {
+  $$RunHistoriesTableTableManager(_$AppDatabase db, $RunHistoriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RunHistoriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RunHistoriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RunHistoriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> timestamp = const Value.absent(),
+                Value<String> filePath = const Value.absent(),
+                Value<int> recordCount = const Value.absent(),
+                Value<int> levelCount = const Value.absent(),
+                Value<int> holidayCount = const Value.absent(),
+                Value<int> totalBonus = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RunHistoriesCompanion(
+                id: id,
+                timestamp: timestamp,
+                filePath: filePath,
+                recordCount: recordCount,
+                levelCount: levelCount,
+                holidayCount: holidayCount,
+                totalBonus: totalBonus,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required DateTime timestamp,
+                Value<String> filePath = const Value.absent(),
+                Value<int> recordCount = const Value.absent(),
+                Value<int> levelCount = const Value.absent(),
+                Value<int> holidayCount = const Value.absent(),
+                Value<int> totalBonus = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RunHistoriesCompanion.insert(
+                id: id,
+                timestamp: timestamp,
+                filePath: filePath,
+                recordCount: recordCount,
+                levelCount: levelCount,
+                holidayCount: holidayCount,
+                totalBonus: totalBonus,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RunHistoriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RunHistoriesTable,
+      RunHistory,
+      $$RunHistoriesTableFilterComposer,
+      $$RunHistoriesTableOrderingComposer,
+      $$RunHistoriesTableAnnotationComposer,
+      $$RunHistoriesTableCreateCompanionBuilder,
+      $$RunHistoriesTableUpdateCompanionBuilder,
+      (
+        RunHistory,
+        BaseReferences<_$AppDatabase, $RunHistoriesTable, RunHistory>,
+      ),
+      RunHistory,
+      PrefetchHooks Function()
+    >;
+typedef $$MatchingDetailsTableCreateCompanionBuilder =
+    MatchingDetailsCompanion Function({
+      required String id,
+      required String resultId,
+      Value<String> increaseDocNumber,
+      Value<String> decreaseDocNumber,
+      Value<DateTime?> decreaseDate,
+      Value<int> amountMatched,
+      Value<String> bonusTier,
+      Value<int> rowid,
+    });
+typedef $$MatchingDetailsTableUpdateCompanionBuilder =
+    MatchingDetailsCompanion Function({
+      Value<String> id,
+      Value<String> resultId,
+      Value<String> increaseDocNumber,
+      Value<String> decreaseDocNumber,
+      Value<DateTime?> decreaseDate,
+      Value<int> amountMatched,
+      Value<String> bonusTier,
+      Value<int> rowid,
+    });
+
+final class $$MatchingDetailsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $MatchingDetailsTable, MatchingDetail> {
+  $$MatchingDetailsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $ResultsTable _resultIdTable(_$AppDatabase db) =>
+      db.results.createAlias(
+        $_aliasNameGenerator(db.matchingDetails.resultId, db.results.id),
+      );
+
+  $$ResultsTableProcessedTableManager get resultId {
+    final $_column = $_itemColumn<String>('result_id')!;
+
+    final manager = $$ResultsTableTableManager(
+      $_db,
+      $_db.results,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_resultIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MatchingDetailsTableFilterComposer
+    extends Composer<_$AppDatabase, $MatchingDetailsTable> {
+  $$MatchingDetailsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get increaseDocNumber => $composableBuilder(
+    column: $table.increaseDocNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get decreaseDocNumber => $composableBuilder(
+    column: $table.decreaseDocNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get decreaseDate => $composableBuilder(
+    column: $table.decreaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMatched => $composableBuilder(
+    column: $table.amountMatched,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get bonusTier => $composableBuilder(
+    column: $table.bonusTier,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$ResultsTableFilterComposer get resultId {
+    final $$ResultsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.resultId,
+      referencedTable: $db.results,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ResultsTableFilterComposer(
+            $db: $db,
+            $table: $db.results,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MatchingDetailsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MatchingDetailsTable> {
+  $$MatchingDetailsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get increaseDocNumber => $composableBuilder(
+    column: $table.increaseDocNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get decreaseDocNumber => $composableBuilder(
+    column: $table.decreaseDocNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get decreaseDate => $composableBuilder(
+    column: $table.decreaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMatched => $composableBuilder(
+    column: $table.amountMatched,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get bonusTier => $composableBuilder(
+    column: $table.bonusTier,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$ResultsTableOrderingComposer get resultId {
+    final $$ResultsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.resultId,
+      referencedTable: $db.results,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ResultsTableOrderingComposer(
+            $db: $db,
+            $table: $db.results,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MatchingDetailsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MatchingDetailsTable> {
+  $$MatchingDetailsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get increaseDocNumber => $composableBuilder(
+    column: $table.increaseDocNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get decreaseDocNumber => $composableBuilder(
+    column: $table.decreaseDocNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get decreaseDate => $composableBuilder(
+    column: $table.decreaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountMatched => $composableBuilder(
+    column: $table.amountMatched,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get bonusTier =>
+      $composableBuilder(column: $table.bonusTier, builder: (column) => column);
+
+  $$ResultsTableAnnotationComposer get resultId {
+    final $$ResultsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.resultId,
+      referencedTable: $db.results,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ResultsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.results,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MatchingDetailsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MatchingDetailsTable,
+          MatchingDetail,
+          $$MatchingDetailsTableFilterComposer,
+          $$MatchingDetailsTableOrderingComposer,
+          $$MatchingDetailsTableAnnotationComposer,
+          $$MatchingDetailsTableCreateCompanionBuilder,
+          $$MatchingDetailsTableUpdateCompanionBuilder,
+          (MatchingDetail, $$MatchingDetailsTableReferences),
+          MatchingDetail,
+          PrefetchHooks Function({bool resultId})
+        > {
+  $$MatchingDetailsTableTableManager(
+    _$AppDatabase db,
+    $MatchingDetailsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MatchingDetailsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MatchingDetailsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MatchingDetailsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> resultId = const Value.absent(),
+                Value<String> increaseDocNumber = const Value.absent(),
+                Value<String> decreaseDocNumber = const Value.absent(),
+                Value<DateTime?> decreaseDate = const Value.absent(),
+                Value<int> amountMatched = const Value.absent(),
+                Value<String> bonusTier = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MatchingDetailsCompanion(
+                id: id,
+                resultId: resultId,
+                increaseDocNumber: increaseDocNumber,
+                decreaseDocNumber: decreaseDocNumber,
+                decreaseDate: decreaseDate,
+                amountMatched: amountMatched,
+                bonusTier: bonusTier,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String resultId,
+                Value<String> increaseDocNumber = const Value.absent(),
+                Value<String> decreaseDocNumber = const Value.absent(),
+                Value<DateTime?> decreaseDate = const Value.absent(),
+                Value<int> amountMatched = const Value.absent(),
+                Value<String> bonusTier = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MatchingDetailsCompanion.insert(
+                id: id,
+                resultId: resultId,
+                increaseDocNumber: increaseDocNumber,
+                decreaseDocNumber: decreaseDocNumber,
+                decreaseDate: decreaseDate,
+                amountMatched: amountMatched,
+                bonusTier: bonusTier,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$MatchingDetailsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({resultId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -5119,29 +6876,18 @@ class $$ResultsTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (mainDataId) {
+                    if (resultId) {
                       state =
                           state.withJoin(
                                 currentTable: table,
-                                currentColumn: table.mainDataId,
-                                referencedTable: $$ResultsTableReferences
-                                    ._mainDataIdTable(db),
-                                referencedColumn: $$ResultsTableReferences
-                                    ._mainDataIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
-                    if (levelConfigId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.levelConfigId,
-                                referencedTable: $$ResultsTableReferences
-                                    ._levelConfigIdTable(db),
-                                referencedColumn: $$ResultsTableReferences
-                                    ._levelConfigIdTable(db)
-                                    .id,
+                                currentColumn: table.resultId,
+                                referencedTable:
+                                    $$MatchingDetailsTableReferences
+                                        ._resultIdTable(db),
+                                referencedColumn:
+                                    $$MatchingDetailsTableReferences
+                                        ._resultIdTable(db)
+                                        .id,
                               )
                               as T;
                     }
@@ -5157,19 +6903,19 @@ class $$ResultsTableTableManager
       );
 }
 
-typedef $$ResultsTableProcessedTableManager =
+typedef $$MatchingDetailsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $ResultsTable,
-      Result,
-      $$ResultsTableFilterComposer,
-      $$ResultsTableOrderingComposer,
-      $$ResultsTableAnnotationComposer,
-      $$ResultsTableCreateCompanionBuilder,
-      $$ResultsTableUpdateCompanionBuilder,
-      (Result, $$ResultsTableReferences),
-      Result,
-      PrefetchHooks Function({bool mainDataId, bool levelConfigId})
+      $MatchingDetailsTable,
+      MatchingDetail,
+      $$MatchingDetailsTableFilterComposer,
+      $$MatchingDetailsTableOrderingComposer,
+      $$MatchingDetailsTableAnnotationComposer,
+      $$MatchingDetailsTableCreateCompanionBuilder,
+      $$MatchingDetailsTableUpdateCompanionBuilder,
+      (MatchingDetail, $$MatchingDetailsTableReferences),
+      MatchingDetail,
+      PrefetchHooks Function({bool resultId})
     >;
 
 class $AppDatabaseManager {
@@ -5183,4 +6929,8 @@ class $AppDatabaseManager {
       $$MainDatasTableTableManager(_db, _db.mainDatas);
   $$ResultsTableTableManager get results =>
       $$ResultsTableTableManager(_db, _db.results);
+  $$RunHistoriesTableTableManager get runHistories =>
+      $$RunHistoriesTableTableManager(_db, _db.runHistories);
+  $$MatchingDetailsTableTableManager get matchingDetails =>
+      $$MatchingDetailsTableTableManager(_db, _db.matchingDetails);
 }

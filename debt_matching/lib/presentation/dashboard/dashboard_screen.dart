@@ -58,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final stats = await _calculateService.calculate(_log, (_) => setState(() {}));
       setState(() {
         _step2State = 'completed';
-        _step2Msg = '✅ ${stats['total_records']} bản ghi, Tổng: ${stats['total_bonus']}';
+        _step2Msg = '✅ ${stats['total_records']} bản ghi, Thưởng: ${stats['total_bonus']}, Consumed: ${stats['total_consumed']}';
         _step3State = 'ready';
       });
     } catch (e) {
