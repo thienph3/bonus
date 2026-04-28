@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:isolate';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -17,11 +16,8 @@ class ImportService {
       id: runId, timestamp: DateTime.now(), filePath: Value(filePath), status: const Value('importing'),
     ));
 
-    onLog('📥 Đọc file...');
-    final bytes = await File(filePath).readAsBytes();
-
     onLog('📥 Parse Excel (background)...');
-    final parsed = await Isolate.run(() => parseExcel((bytes, runId)));
+    final parsed = await Isolate.run(() => parseExcelFile((filePath, runId)));
 
     final holidays = parsed['holidays']!;
     final levels = parsed['levels']!;
