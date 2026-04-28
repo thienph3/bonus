@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'package:drift/drift.dart';
-import 'package:excel/excel.dart';
 import 'package:uuid/uuid.dart';
 import '../database/app_database.dart';
-import '../../core/utils/parse_utils.dart';
+import 'import_parser.dart';
+
+DateTime? _ms(Object? v) => v is int ? DateTime.fromMillisecondsSinceEpoch(v) : null;
 
 class ImportService {
   final AppDatabase _db = AppDatabase.instance;
@@ -17,102 +19,58 @@ class ImportService {
 
     onLog('📥 Đọc file...');
     final bytes = await File(filePath).readAsBytes();
-    final excel = Excel.decodeBytes(bytes);
 
-    final holidayCount = await _importHolidays(excel, runId, onLog);
-    final levelCount = await _importLevels(excel, runId, onLog);
-    final recordCount = await _importMainData(excel, runId, onLog);
+    onLog('📥 Parse Excel (background)...');
+    final parsed = await Isolate.run(() => parseExcel((bytes, runId)));
+
+    final holidays = parsed['holidays']!;
+    final levels = parsed['levels']!;
+    final mainData = parsed['mainData']!;
+
+    onLog('📥 Lưu ${holidays.length} ngày lễ...');
+    if (holidays.isNotEmpty) {
+      await _db.batch((b) => b.insertAll(_db.holidayConfigs, holidays.map((h) =>
+        HolidayConfigsCompanion.insert(id: h['id'] as String, runId: Value(h['runId'] as String?),
+          date: DateTime.fromMillisecondsSinceEpoch(h['date'] as int))).toList()));
+    }
+
+    onLog('📥 Lưu ${levels.length} cấp độ...');
+    if (levels.isNotEmpty) {
+      await _db.batch((b) => b.insertAll(_db.levelConfigs, levels.map((l) =>
+        LevelConfigsCompanion.insert(
+          id: l['id'] as String, runId: Value(l['runId'] as String?),
+          seasonalCode: l['seasonalCode'] as String, salesMethod: l['salesMethod'] as String,
+          paymentPeriod: l['paymentPeriod'] as int, paymentPeriod1: l['paymentPeriod1'] as int,
+          paymentPeriod2: l['paymentPeriod2'] as int, paymentPeriod3: l['paymentPeriod3'] as int,
+          paymentDueDate1: Value(_ms(l['pdd1'])), paymentDueDate2: Value(_ms(l['pdd2'])),
+          paymentDueDate3: Value(_ms(l['pdd3'])),
+        )).toList()));
+    }
+
+    onLog('📥 Lưu ${mainData.length} dòng...');
+    final mdList = mainData.map((m) => MainDatasCompanion.insert(
+      id: m['id'] as String, runId: Value(m['runId'] as String?),
+      idx: Value(m['idx'] as int?), documentDate: Value(_ms(m['docDate'])),
+      documentNumber: Value(m['docNum'] as String?), description: Value(m['desc'] as String?),
+      correspondingAccount: Value(m['corrAcc'] as String?),
+      increase: Value(m['inc'] as int?), decrease: Value(m['dec'] as int?),
+      adjustIncrease: Value(m['adjInc'] as int?), adjustDecrease: Value(m['adjDec'] as int?),
+      endAmount: Value(m['endAmt'] as int?), seasonalCode: m['seasonal'] as String,
+      paymentPeriod: Value(m['payPeriod'] as int?), customerCode: m['custCode'] as String,
+      customerName: Value(m['custName'] as String?), branch: m['branch'] as String,
+      code: Value(m['code'] as String?), salesMethod: m['salesMethod'] as String,
+    )).toList();
+
+    for (int i = 0; i < mdList.length; i += 100) {
+      await _db.batch((b) => b.insertAll(_db.mainDatas, mdList.sublist(i, (i + 100).clamp(0, mdList.length))));
+      onLog('✅ Đã nhập ${(i + 100).clamp(0, mdList.length)} dòng...');
+    }
 
     await (_db.update(_db.runHistories)..where((t) => t.id.equals(runId))).write(
-      RunHistoriesCompanion(recordCount: Value(recordCount), levelCount: Value(levelCount),
-        holidayCount: Value(holidayCount), status: const Value('imported')));
+      RunHistoriesCompanion(recordCount: Value(mainData.length), levelCount: Value(levels.length),
+        holidayCount: Value(holidays.length), status: const Value('imported')));
 
     onLog('✅ Hoàn tất import.');
-    return {'runId': runId, 'holidays': holidayCount, 'levels': levelCount, 'records': recordCount};
-  }
-
-  Future<int> _importHolidays(Excel excel, String runId, void Function(String) onLog) async {
-    final sheet = excel.tables['holiday_config'];
-    if (sheet == null) { onLog('⚠️ Sheet "holiday_config" không tồn tại.'); return 0; }
-    onLog('📥 Importing holiday_config...');
-    final batch = <HolidayConfigsCompanion>[];
-    for (int i = 1; i < sheet.maxRows; i++) {
-      final row = sheet.row(i);
-      if (row.isEmpty || row[0]?.value == null) continue;
-      final date = parseDate(row[0]?.value);
-      if (date == null) continue;
-      batch.add(HolidayConfigsCompanion.insert(id: _uuid.v4(), date: date, runId: Value(runId)));
-    }
-    if (batch.isNotEmpty) await _db.batch((b) => b.insertAll(_db.holidayConfigs, batch));
-    onLog('✅ Đã nhập ${batch.length} ngày lễ.');
-    return batch.length;
-  }
-
-  Future<int> _importLevels(Excel excel, String runId, void Function(String) onLog) async {
-    final sheet = excel.tables['level_config'];
-    if (sheet == null) { onLog('⚠️ Sheet "level_config" không tồn tại.'); return 0; }
-    onLog('📥 Importing level_config...');
-    final batch = <LevelConfigsCompanion>[];
-    for (int i = 1; i < sheet.maxRows; i++) {
-      final row = sheet.row(i);
-      if (row.isEmpty || row[0]?.value == null) continue;
-      try {
-        batch.add(LevelConfigsCompanion.insert(
-          id: _uuid.v4(), runId: Value(runId),
-          seasonalCode: row[0]?.value?.toString() ?? '', salesMethod: row[1]?.value?.toString() ?? '',
-          paymentPeriod: parseNumber(row[2]?.value) ?? 0, paymentPeriod1: parseNumber(row[3]?.value) ?? 0,
-          paymentPeriod2: parseNumber(row[4]?.value) ?? 0, paymentPeriod3: parseNumber(row[5]?.value) ?? 0,
-          paymentDueDate1: Value(parseDate(row[6]?.value)),
-          paymentDueDate2: Value(parseDate(row[7]?.value)),
-          paymentDueDate3: Value(parseDate(row[8]?.value)),
-        ));
-      } catch (e) { onLog('⚠️ Row ${i + 1}: $e'); }
-    }
-    if (batch.isNotEmpty) await _db.batch((b) => b.insertAll(_db.levelConfigs, batch));
-    onLog('✅ Đã nhập ${batch.length} cấp độ.');
-    return batch.length;
-  }
-
-  Future<int> _importMainData(Excel excel, String runId, void Function(String) onLog) async {
-    final sheet = excel.tables['Data'];
-    if (sheet == null) { onLog('⚠️ Sheet "Data" không tồn tại.'); return 0; }
-    onLog('📥 Importing main_data...');
-    int startRow = -1;
-    for (int i = 0; i < 30 && i < sheet.maxRows; i++) {
-      final row = sheet.row(i);
-      if (row.where((c) => c?.value != null && c!.value.toString().trim().isNotEmpty).length >= 17) {
-        startRow = i + 1; break;
-      }
-    }
-    if (startRow == -1) { onLog('❌ Header not found.'); return 0; }
-
-    int count = 0;
-    var batch = <MainDatasCompanion>[];
-    for (int i = startRow; i < sheet.maxRows; i++) {
-      final row = sheet.row(i);
-      if (row.every((c) => c?.value == null || c!.value.toString().trim().isEmpty)) break;
-      try {
-        batch.add(MainDatasCompanion.insert(
-          id: _uuid.v4(), runId: Value(runId),
-          idx: Value(parseNumber(row[0]?.value)), documentDate: Value(parseDate(row[1]?.value)),
-          documentNumber: Value(row[2]?.value?.toString()), description: Value(row[3]?.value?.toString()),
-          correspondingAccount: Value(row[4]?.value?.toString()),
-          increase: Value(parseNumber(row[5]?.value)), decrease: Value(parseNumber(row[6]?.value)),
-          adjustIncrease: Value(parseNumber(row[7]?.value)), adjustDecrease: Value(parseNumber(row[8]?.value)),
-          endAmount: Value(parseNumber(row[9]?.value)), seasonalCode: row[10]?.value?.toString() ?? '',
-          paymentPeriod: Value(parseNumber(row[11]?.value)), customerCode: row[12]?.value?.toString() ?? '',
-          customerName: Value(row[13]?.value?.toString()), branch: row[14]?.value?.toString() ?? '',
-          code: Value(row[15]?.value?.toString()), salesMethod: row[16]?.value?.toString() ?? '',
-        ));
-        if (batch.length >= 100) {
-          await _db.batch((b) => b.insertAll(_db.mainDatas, batch));
-          count += batch.length; batch = [];
-          onLog('✅ Đã nhập $count dòng...');
-        }
-      } catch (e) { onLog('⚠️ Row ${i + 1}: $e'); }
-    }
-    if (batch.isNotEmpty) { await _db.batch((b) => b.insertAll(_db.mainDatas, batch)); count += batch.length; }
-    onLog('✅ Đã nhập $count dòng dữ liệu.');
-    return count;
+    return {'runId': runId, 'holidays': holidays.length, 'levels': levels.length, 'records': mainData.length};
   }
 }
