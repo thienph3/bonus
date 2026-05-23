@@ -42,3 +42,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/template.xlsx
+    - assets/initial_state.png
+    - assets/export_success.png
+    - assets/error_state.png

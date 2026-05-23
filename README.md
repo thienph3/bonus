@@ -66,3 +66,15 @@ Yêu cầu: Flutter SDK (stable), Windows
 | [docs/REVIEW.md](docs/REVIEW.md) | Review tổng hợp + business rules + fix history |
 | [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | Danh sách cải thiện theo priority |
 | [docs/TESTING.md](docs/TESTING.md) | Hướng dẫn chạy test (114 tests) |
+
+## Assets
+
+| File | Mô tả | Kích thước |
+|------|--------|-----------|
+| `debt_matching/windows/runner/resources/app_icon.ico` | App icon (taskbar, title bar) | Multi-res: 16/32/48/256 |
+| `debt_matching/assets/initial_state.png` | Illustration màn hình chờ import | 240x200 |
+| `debt_matching/assets/export_success.png` | Illustration xuất file thành công | 200x160 |
+| `debt_matching/assets/error_state.png` | Illustration lỗi | 200x160 |
+| `debt_matching/assets/template.xlsx` | File mẫu Excel | — |
+
+Prompts để generate images: [prompts/](prompts/)
