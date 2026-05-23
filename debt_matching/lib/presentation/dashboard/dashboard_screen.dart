@@ -95,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } else if (run.status == 'imported') {
       _retryCalculate(runId);
     } else {
-      setState(() => _state = AppState.initial);
+      setState(() { _state = AppState.error; _errorMsg = 'Kỳ này bị gián đoạn khi import. Vui lòng xóa và import lại.'; });
     }
   }
 
