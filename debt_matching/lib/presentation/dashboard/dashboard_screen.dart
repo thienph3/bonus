@@ -13,6 +13,7 @@ import '../../data/services/template_service.dart';
 import 'widgets/console_panel.dart';
 import 'widgets/preview_panel.dart';
 import 'widgets/run_selector.dart';
+import 'widgets/bonus_rates_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
 
@@ -38,7 +39,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<RunHistory> _runs = [];
   int _subStep = 0;
   PreviewData _preview = PreviewData(stats: {}, topResults: [], invalidCount: 0);
-
   @override void initState() { super.initState(); _loadRuns(); }
 
   Future<void> _loadRuns() async {
@@ -50,10 +50,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _log(String msg) {
     setState(() => _logs.add('[${TimeOfDay.now().format(context)}] $msg'));
     Future.delayed(const Duration(milliseconds: 50), () {
-      if (_scroll.hasClients) {
-        _scroll.animateTo(_scroll.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
-      }
+      if (_scroll.hasClients) { _scroll.animateTo(_scroll.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 200), curve: Curves.easeOut); }
     });
   }
 
@@ -103,11 +101,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _exportRun() async {
     if (_currentRunId == null) return;
+    final rates = await showBonusRatesDialog(context);
+    if (rates == null) return; // cancelled
     final path = await FilePicker.platform.saveFile(dialogTitle: 'Xuất kết quả',
         fileName: 'result.xlsx', type: FileType.custom, allowedExtensions: ['xlsx']);
     if (path == null) return;
     setState(() => _state = AppState.processing);
-    try { await _export.exportToExcel(_currentRunId!, path, _log); setState(() { _state = AppState.exported; _exportedPath = path; }); }
+    try { await _export.exportToExcel(_currentRunId!, path, _log, bonusRates: rates.isEmpty ? null : rates); setState(() { _state = AppState.exported; _exportedPath = path; }); }
     catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
   }
 

@@ -6,7 +6,8 @@ import 'export_builder.dart';
 class ExportService {
   final AppDatabase _db = AppDatabase.instance;
 
-  Future<void> exportToExcel(String runId, String filePath, void Function(String) onLog) async {
+  Future<void> exportToExcel(String runId, String filePath, void Function(String) onLog,
+      {Map<String, double>? bonusRates}) async {
     onLog('📤 Đang lấy dữ liệu...');
     final results = await (_db.select(_db.results)..where((t) => t.runId.equals(runId))).get();
     final mainDatas = await (_db.select(_db.mainDatas)..where((t) => t.runId.equals(runId))).get();
@@ -42,7 +43,9 @@ class ExportService {
     }).toList();
 
     onLog('📤 Tạo Excel (background)...');
-    final bytes = await Isolate.run(() => buildExcelBytes({'results': serialResults, 'matchings': serialMatchings}));
+    final bytes = await Isolate.run(() => buildExcelBytes({
+      'results': serialResults, 'matchings': serialMatchings, 'bonusRates': bonusRates,
+    }));
 
     onLog('📤 Lưu file...');
     if (bytes != null && bytes.isNotEmpty) await File(filePath).writeAsBytes(bytes);

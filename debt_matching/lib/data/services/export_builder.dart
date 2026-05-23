@@ -5,21 +5,25 @@ import 'package:excel/excel.dart';
 Uint8List? buildExcelBytes(Map<String, dynamic> input) {
   final results = input['results'] as List<Map<String, dynamic>>;
   final matchings = input['matchings'] as List<Map<String, dynamic>>;
+  final bonusRates = input['bonusRates'] as Map<String, double>?;
 
   final excel = Excel.createExcel();
-  _writeSummary(excel, results);
+  _writeSummary(excel, results, bonusRates);
   _writeResults(excel, results);
   _writeMatchings(excel, matchings);
   if (excel.tables.containsKey('Sheet1')) excel.delete('Sheet1');
   return Uint8List.fromList(excel.save() ?? []);
 }
 
-void _writeSummary(Excel excel, List<Map<String, dynamic>> results) {
+void _writeSummary(Excel excel, List<Map<String, dynamic>> results, Map<String, double>? rates) {
   final sheet = excel['Summary'];
-  final headers = ['customer_code', 'customer_name', 'records', 'bonus_1', 'bonus_2', 'bonus_3', 'total_bonus'];
+  final hasRates = rates != null && rates.isNotEmpty;
+  final headers = ['customer_code', 'customer_name', 'records', 'bonus_1', 'bonus_2', 'bonus_3', 'total_bonus',
+    if (hasRates) ...['final_bonus_1', 'final_bonus_2', 'final_bonus_3', 'final_total']];
   for (int c = 0; c < headers.length; c++) {
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0)).value = TextCellValue(headers[c]);
   }
+  final r1 = rates?['pct_1'] ?? 0, r2 = rates?['pct_2'] ?? 0, r3 = rates?['pct_3'] ?? 0;
   // Group by customer_code
   final grouped = <String, Map<String, dynamic>>{};
   for (final r in results) {
@@ -47,6 +51,15 @@ void _writeSummary(Excel excel, List<Map<String, dynamic>> results) {
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['b2'] as int);
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['b3'] as int);
     sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(total);
+    if (hasRates) {
+      final fb1 = ((g['b1'] as int) * r1 / 100).round();
+      final fb2 = ((g['b2'] as int) * r2 / 100).round();
+      final fb3 = ((g['b3'] as int) * r3 / 100).round();
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(fb1);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(fb2);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(fb3);
+      sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(fb1 + fb2 + fb3);
+    }
   }
 }
 
