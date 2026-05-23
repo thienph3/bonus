@@ -7,7 +7,7 @@ String friendlyError(Object e) {
   if (msg.contains('permission') || msg.contains('denied') || msg.contains('access')) {
     return 'Không có quyền truy cập file. Vui lòng kiểm tra lại.';
   }
-  if (msg.contains('No such file') || msg.contains('FileSystemException')) {
+  if (msg.contains('No such file') || msg.contains('FileSystemException') || msg.contains('PathNotFoundException') || msg.contains('cannot find the file')) {
     return 'Không tìm thấy file. Vui lòng chọn lại.';
   }
   return 'Lỗi không xác định. Vui lòng liên hệ IT.\n\nChi tiết: $msg';
