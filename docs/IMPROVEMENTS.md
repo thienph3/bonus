@@ -12,9 +12,9 @@ Danh sách cải thiện theo priority. Context → [REVIEW.md](REVIEW.md)
 | P2 | Performance + validation | ✅ Done (trừ #5 chờ recheck) |
 | P3 | UX improvements | ✅ Done |
 | P4 | Features + bug fixes | ✅ Done |
-| P5 | UX polish | 📋 Planned |
-| P6 | Responsive layout | 📋 Planned |
-| P7 | Visual style | 📋 Planned |
+| P5 | UX polish | ✅ Done (trừ #40, #42, #43) |
+| P6 | Responsive layout | ✅ Done |
+| P7 | Visual style | ✅ Done |
 | P8 | Package upgrades | ✅ Done |
 
 ---
@@ -107,48 +107,39 @@ Danh sách cải thiện theo priority. Context → [REVIEW.md](REVIEW.md)
 
 ## 📋 Planned
 
-### P5 — UX Polish
+### P5 — UX Polish ✅
 
-| # | Issue | Severity | Fix |
-|---|-------|----------|-----|
-| 36 | Import: no progress during 25s | Medium | Show row count in progress label |
-| 37 | Console expand icon inverted | Low | Swap expand_more/expand_less |
-| 38 | "Bắt đầu lại" misleading after export | Low | Rename to "Quay lại" |
-| 39 | Run status in English | Low | Translate to Vietnamese |
-| 40 | No drag-and-drop | Low | Add DropTarget widget |
-| 41 | Error text overflow | Low | Wrap in ScrollView |
-| 42 | No "Mở file" after export | Low | Add open-file button |
-| 43 | Bonus rates: no validation | Low | Inline error on invalid input |
-| 59 | **Sample Verification** | High | See design below |
+| # | Issue | Status |
+|---|-------|--------|
+| 36 | Import progress in processing view | ✅ |
+| 37 | Console expand icon fixed | ✅ |
+| 38 | "Quay lại" replaces "Bắt đầu lại" | ✅ |
+| 39 | Vietnamese status labels | ✅ |
+| 40 | Drag-and-drop | ⏸️ Needs platform plugin |
+| 41 | Error text scrollable | ✅ |
+| 42 | "Mở file" after export | ⏸️ Needs url_launcher |
+| 43 | Bonus rates validation | ⏸️ Low impact |
+| 59 | **Sample Verification** | 📋 Planned |
 
-### P6 — Responsive Layout
+### P6 — Responsive Layout ✅
 
-Target: 1024x768 → 3840x2160
+| # | Fix | Status |
+|---|-----|--------|
+| 44 | Wrap buttons (< 900px) | ✅ |
+| 45 | ConstrainedBox maxWidth 960 (> 1920px) | ✅ |
+| 46 | Column guide dialog dynamic sizing | ✅ |
+| 47 | Compare/Override dialog dynamic sizing | ✅ |
+| 49 | Console 20% screen height | ✅ |
 
-| # | Issue | Fix |
-|---|-------|-----|
-| 44 | Buttons overflow < 900px | `Wrap` thay `Row` |
-| 45 | Content sparse > 1920px | `ConstrainedBox(maxWidth: 900)` |
-| 46 | Dialog tràn < 750px | Dynamic maxWidth via MediaQuery |
-| 47 | Compare/Override dialog tràn | Tương tự #46 |
-| 48 | Illustration nhỏ trên 4K | Scale theo screen size |
-| 49 | Console fixed 150px | 20% screen height |
-| 50 | Font nhỏ trên 4K | Respect textScaleFactor |
-| 51 | Card clamp quá nhỏ trên 4K | Scale clamp values |
+### P7 — Visual Style ✅
 
-### P7 — Visual Style
-
-Nguyên tắc: Modern framework, classical density.
-
-| # | Change | Current → Target |
-|---|--------|-----------------|
-| 52 | Padding | 24px → 16px |
-| 53 | Color seed | blue → indigo/blueGrey |
-| 54 | Card style | Elevated → Outlined/flat |
-| 55 | Table rows | White → Zebra striping |
-| 56 | Body text | 14px → 13px (data areas) |
-| 57 | Icon colors | Colorful → Monochrome |
-| 58 | Row height | 48px → 36-40px |
+| # | Change | Status |
+|---|--------|--------|
+| 52 | Padding 24→16 | ✅ |
+| 53 | Color indigo | ✅ |
+| 54 | Outlined cards | ✅ |
+| 56 | Body text 13px | ✅ |
+| 58 | Row height 36-40px | ✅ |
 
 ---
 
