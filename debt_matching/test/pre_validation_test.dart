@@ -12,13 +12,17 @@ import 'package:debt_matching/data/services/pre_validation_service.dart';
 
 void main() {
   late AppDatabase db;
-  setUp(() => db = AppDatabase.forTesting(NativeDatabase.memory()));
+  var _idCounter = 0;
+  setUp(() {
+    db = AppDatabase.forTesting(NativeDatabase.memory());
+    _idCounter = 0;
+  });
   tearDown(() => db.close());
 
   Future<void> _insertData(String runId, {String? docNum, int? period,
     String seasonal = 'VU01', String sales = 'BH01', String cust = 'KH01'}) async {
     await db.into(db.mainDatas).insert(MainDatasCompanion.insert(
-      id: 'md-${DateTime.now().microsecondsSinceEpoch}', runId: Value(runId),
+      id: 'md-${++_idCounter}', runId: Value(runId),
       documentNumber: Value(docNum), paymentPeriod: Value(period),
       seasonalCode: seasonal, salesMethod: sales, customerCode: cust, branch: 'CN01'));
   }
