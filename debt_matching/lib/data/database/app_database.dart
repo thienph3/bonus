@@ -15,6 +15,7 @@ part 'app_database.g.dart';
   Results,
   RunHistories,
   MatchingDetails,
+  FifoProgress,
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
@@ -24,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase._();
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -42,6 +43,11 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('CREATE INDEX IF NOT EXISTS idx_main_datas_run_id ON main_datas(run_id)');
         await customStatement('CREATE INDEX IF NOT EXISTS idx_results_run_id ON results(run_id)');
         await customStatement('CREATE INDEX IF NOT EXISTS idx_matching_details_run_id ON matching_details(run_id)');
+      }
+      if (from < 4) {
+        await customStatement('CREATE TABLE IF NOT EXISTS fifo_progress ('
+            'run_id TEXT NOT NULL, group_key TEXT NOT NULL, status TEXT NOT NULL DEFAULT \'pending\', '
+            'PRIMARY KEY (run_id, group_key))');
       }
     },
   );

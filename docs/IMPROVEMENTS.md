@@ -51,15 +51,15 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ## P4 — Future (v1.2+)
 
-| # | Feature | Effort |
-|---|---------|--------|
-| 23 | So sánh giữa các kỳ | 2 days |
-| 24 | Config UI cho level/holiday trong app | 3 days |
-| 25 | Optional % input → tính tiền thưởng cuối | 1 day |
-| 26 | Edit/override kết quả individual | 2 days |
-| 27 | Retry/cleanup cho stuck runs | 1 hour |
-| 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min |
-| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours |
+| # | Feature | Effort | Status |
+|---|---------|--------|--------|
+| 23 | So sánh giữa các kỳ | 2 days | Backlog |
+| 24 | Config UI cho level/holiday trong app | 3 days | Backlog |
+| 25 | Optional % input → tính tiền thưởng cuối | 1 day | ✅ Done |
+| 26 | Edit/override kết quả individual | 2 days | Backlog |
+| 27 | Retry/cleanup cho stuck runs | 1 hour | ✅ Done |
+| 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min | ✅ Done |
+| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours | ✅ Done (needs build_runner) |
 
 ---
 

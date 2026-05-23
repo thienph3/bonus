@@ -108,3 +108,12 @@ class MatchingDetails extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+class FifoProgress extends Table {
+  TextColumn get runId => text()();
+  TextColumn get groupKey => text()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+
+  @override
+  Set<Column> get primaryKey => {runId, groupKey};
+}
