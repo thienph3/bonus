@@ -82,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final stats = await _calc.calculate(runId, _log, _onSubStep);
       _currentRunId = runId; _preview = await loadPreviewData(runId, stats);
       await _loadRuns(); setState(() => _state = AppState.preview);
-    } catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
+    } catch (e) { await _loadRuns(); setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
   }
 
   Future<void> _selectRun(String runId) async {
