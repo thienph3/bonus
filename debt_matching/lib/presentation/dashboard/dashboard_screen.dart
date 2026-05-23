@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:drift/drift.dart' show OrderingTerm;
-import 'package:path/path.dart' as p;
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/error_utils.dart';
 import '../../data/database/app_database.dart';
@@ -10,6 +9,7 @@ import '../../data/services/import_service.dart';
 import '../../data/services/calculate_service.dart';
 import '../../data/services/export_service.dart';
 import '../../data/services/pre_validation_service.dart';
+import '../../data/services/template_service.dart';
 import 'widgets/console_panel.dart';
 import 'widgets/preview_panel.dart';
 import 'widgets/run_selector.dart';
@@ -30,26 +30,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _calc = CalculateService();
   final _export = ExportService();
   final _validation = PreValidationService();
-  final List<String> _logs = [];
   final _scroll = ScrollController();
-
+  final List<String> _logs = [];
   AppState _state = AppState.initial;
   String _errorMsg = '', _exportedPath = '';
   String? _currentRunId;
   List<RunHistory> _runs = [];
-  PreviewData _preview = PreviewData(stats: {}, topResults: [], invalidCount: 0);
   int _subStep = 0;
+  PreviewData _preview = PreviewData(stats: {}, topResults: [], invalidCount: 0);
 
-  @override
-  void initState() { super.initState(); _loadRuns(); }
+  @override void initState() { super.initState(); _loadRuns(); }
 
   Future<void> _loadRuns() async {
     final db = AppDatabase.instance;
     final runs = await (db.select(db.runHistories)..orderBy([(t) => OrderingTerm.desc(t.timestamp)])).get();
-    setState(() {
-      _runs = runs;
-      if (runs.isNotEmpty && _currentRunId == null) { _currentRunId = runs.first.id; }
-    });
+    setState(() { _runs = runs; if (runs.isNotEmpty && _currentRunId == null) _currentRunId = runs.first.id; });
   }
 
   void _log(String msg) {
@@ -63,6 +58,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _onSubStep(int step) => setState(() => _subStep = step);
+
+  Future<void> _retryCalculate(String runId) async {
+    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
+    _log('🔄 Tính lại kỳ bị gián đoạn...');
+    try {
+      await _validation.validate(runId, _log);
+      final stats = await _calc.calculate(runId, _log, _onSubStep);
+      _currentRunId = runId; _preview = await loadPreviewData(runId, stats);
+      await _loadRuns(); setState(() => _state = AppState.preview);
+    } catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
+  }
 
   Future<void> _processFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
@@ -88,6 +94,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() => _state = AppState.processing);
       _preview = await loadPreviewData(runId, null);
       setState(() => _state = AppState.preview);
+    } else if (run.status == 'imported') {
+      _retryCalculate(runId);
     } else {
       setState(() => _state = AppState.initial);
     }
@@ -95,47 +103,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _exportRun() async {
     if (_currentRunId == null) return;
-    final path = await FilePicker.platform.saveFile(dialogTitle: 'Xuất kết quả', fileName: 'result.xlsx',
-        type: FileType.custom, allowedExtensions: ['xlsx']);
+    final path = await FilePicker.platform.saveFile(dialogTitle: 'Xuất kết quả',
+        fileName: 'result.xlsx', type: FileType.custom, allowedExtensions: ['xlsx']);
     if (path == null) return;
     setState(() => _state = AppState.processing);
-    try {
-      await _export.exportToExcel(_currentRunId!, path, _log);
-      setState(() { _state = AppState.exported; _exportedPath = path; });
-    } catch (e) {
-      setState(() { _state = AppState.error; _errorMsg = friendlyError(e); });
-    }
+    try { await _export.exportToExcel(_currentRunId!, path, _log); setState(() { _state = AppState.exported; _exportedPath = path; }); }
+    catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
   }
 
   Future<void> _deleteRun(String runId) async {
     await _export.deleteRun(runId);
-    _currentRunId = null;
-    await _loadRuns();
-    setState(() => _state = AppState.initial);
+    _currentRunId = null; await _loadRuns(); setState(() => _state = AppState.initial);
   }
 
-  Future<void> _downloadTemplate() async {
-    final savePath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Lưu file mẫu', fileName: 'template.xlsx',
-        type: FileType.custom, allowedExtensions: ['xlsx']);
-    if (savePath == null) return;
-    final src = File(p.join(p.dirname(Platform.resolvedExecutable), 'data', 'flutter_assets', 'assets', 'template.xlsx'));
-    if (await src.exists()) { await src.copy(savePath); _log('✅ Đã lưu file mẫu: $savePath'); }
-    else { _log('⚠️ Không tìm thấy file mẫu.'); }
-  }
+  Future<void> _downloadTemplate() => downloadTemplate(_log);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true, actions: [
-        IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
-            onPressed: widget.themeProvider.toggle, tooltip: 'Đổi theme'),
-      ]),
-      body: Column(children: [
-        RunSelector(runs: _runs, selectedRunId: _currentRunId, onSelect: _selectRun, onDelete: _deleteRun),
-        Expanded(child: _buildMain()),
-        ConsolePanel(logs: _logs, scrollController: _scroll),
-      ]),
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyO, control: true): _processFile,
+        const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun,
+      },
+      child: Focus(autofocus: true, child: Scaffold(
+        appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true, actions: [
+          IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
+              onPressed: widget.themeProvider.toggle, tooltip: 'Đổi theme'),
+        ]),
+        body: Column(children: [
+          RunSelector(runs: _runs, selectedRunId: _currentRunId, onSelect: _selectRun, onDelete: _deleteRun),
+          Expanded(child: _buildMain()),
+          ConsolePanel(logs: _logs, scrollController: _scroll),
+        ]),
+      )),
     );
   }
 
