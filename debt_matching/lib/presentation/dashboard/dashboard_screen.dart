@@ -15,6 +15,7 @@ import 'widgets/preview_panel.dart';
 import 'widgets/run_selector.dart';
 import 'widgets/bonus_rates_dialog.dart';
 import 'widgets/compare_dialog.dart';
+import 'widgets/override_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
 enum AppState { initial, processing, preview, exported, error }
@@ -59,8 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _retryCalculate(String runId) async {
     setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
-    _log('🔄 Tính lại kỳ bị gián đoạn...');
-    try {
+    _log('🔄 Tính lại kỳ bị gián đoạn...'); try {
       await _validation.validate(runId, _log);
       final stats = await _calc.calculate(runId, _log, _onSubStep);
       _currentRunId = runId; _preview = await loadPreviewData(runId, stats);
@@ -118,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _downloadTemplate() => downloadTemplate(_log);
   void _showCompare() => showDialog(context: context, builder: (_) => CompareDialog(runs: _runs, currentRunId: _currentRunId!));
-
+  void _showOverride() => showDialog(context: context, builder: (_) => OverrideDialog(runId: _currentRunId!));
   @override
   Widget build(BuildContext context) {
     return CallbackShortcuts(
@@ -141,8 +141,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMain() => switch (_state) {
     AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
     AppState.processing => buildProcessingView(_subStep),
-    AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults,
-        invalidCount: _preview.invalidCount, onExport: _exportRun, onReset: _processFile,
+    AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults, invalidCount: _preview.invalidCount,
+        onExport: _exportRun, onReset: _processFile, onOverride: _showOverride,
         onCompare: _runs.where((r) => r.status == 'completed').length > 1 ? _showCompare : null),
     AppState.exported => buildExportedView(_exportedPath, () => setState(() => _state = AppState.preview)),
     AppState.error => buildErrorView(_errorMsg, () => setState(() => _state = AppState.initial)),
