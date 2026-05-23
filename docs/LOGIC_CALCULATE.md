@@ -2,7 +2,7 @@
 
 ## Tổng quan
 
-File: `calculate_service.dart` → `calculate_result_builder.dart` → `calculate_fifo.dart`
+File: `calculate_service.dart` → `calculate_validator.dart` + `calculate_result_builder.dart` → `calculate_fifo.dart`
 
 Chạy trong `db.transaction()`. FIFO computation chạy trong `Isolate.run()`.
 Chỉ xử lý data của 1 run (filter by `runId`).
@@ -11,7 +11,7 @@ Chỉ xử lý data của 1 run (filter by `runId`).
 
 ## Bước 1: Validate & Mapping level_config
 
-File: `calculate_result_builder.dart` → `validateAndMap()`
+File: `calculate_validator.dart` → `validateAndMap()`
 
 Mỗi main_data record được validate:
 

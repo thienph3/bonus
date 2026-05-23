@@ -1,6 +1,7 @@
 import 'dart:isolate';
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
+import 'calculate_validator.dart';
 import 'calculate_result_builder.dart';
 import 'calculate_fifo.dart';
 import 'calculate_writer.dart';
@@ -33,7 +34,7 @@ class CalculateService {
 
       onLog('Validate & tạo kết quả...');
       onSubStep(1);
-      final validated = _builder.validateAndMap(datas, sortedLevels);
+      final validated = validateAndMap(datas, sortedLevels);
       final resultRows = _builder.buildResultRows(datas, validated, holidaySet, runId);
       await _db.batch((b) => b.insertAll(_db.results, resultRows));
 
