@@ -6,6 +6,11 @@ import 'import_parser.dart';
 
 DateTime? _ms(Object? v) => v is int ? DateTime.fromMillisecondsSinceEpoch(v) : null;
 
+/// Top-level so Isolate.run() doesn't capture unsendable objects.
+Future<Map<String, List<Map<String, Object?>>>> _parseInIsolate(String filePath, String runId) {
+  return Isolate.run(() => parseExcelFile((filePath, runId)));
+}
+
 class ImportService {
   final AppDatabase _db = AppDatabase.instance;
   final _uuid = const Uuid();
@@ -19,7 +24,7 @@ class ImportService {
     onLog('📥 Parse Excel (background)...');
     final parsed = AppDatabase.testMode
         ? parseExcelFile((filePath, runId))
-        : await Isolate.run(() => parseExcelFile((filePath, runId)));
+        : await _parseInIsolate(filePath, runId);
 
     final holidays = parsed['holidays']!;
     final levels = parsed['levels']!;
