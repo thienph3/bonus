@@ -21,7 +21,7 @@ class RunSelector extends StatelessWidget {
     if (runs.isEmpty) return const SizedBox.shrink();
     final fmt = DateFormat('dd/MM/yyyy HH:mm');
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(

@@ -27,7 +27,7 @@ class PreviewPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final recon = stats['total_pushed'] == stats['total_consumed'] + stats['total_remaining'];
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
