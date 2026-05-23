@@ -60,8 +60,9 @@ Yêu cầu: Flutter SDK (stable), Windows
 
 | File | Nội dung |
 |------|----------|
+| [docs/RUN_GUIDE.md](docs/RUN_GUIDE.md) | Hướng dẫn chạy app + test với file Excel |
 | [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md) | Thuật toán tính toán (FIFO, 3-tier bonus) |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema database |
 | [docs/REVIEW.md](docs/REVIEW.md) | Review tổng hợp + business rules + fix history |
 | [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | Danh sách cải thiện theo priority |
-| [docs/TESTING.md](docs/TESTING.md) | Hướng dẫn chạy test (72 tests) |
+| [docs/TESTING.md](docs/TESTING.md) | Hướng dẫn chạy test (114 tests) |

@@ -23,8 +23,10 @@ flutter test integration_test/ -d windows
 | Flutter unit | `flutter test` | 37 | 6 files |
 | Widget | `flutter test test/widget/` | 23 | 6 files |
 | Pipeline | `flutter test test/pipeline_test.dart` | 10 | 1 file |
+| E2E | `flutter test test/e2e_test.dart` | 5 | 1 file |
+| Robustness | `flutter test test/robustness_test.dart` | 4 | 1 file |
 | Integration | `flutter test integration_test/ -d windows` | 3 | 1 file |
-| **Total** | | **118** | **19 files** |
+| **Total** | | **127** | **21 files** |
 
 ## Test Coverage by Service
 
@@ -147,6 +149,19 @@ flutter test integration_test/ -d windows
 - Hidden when no runs
 - Shows dropdown with runs
 - Delete confirms with dialog
+
+### E2E pipeline (5 tests)
+- Import → calculate → export produces valid 3-sheet Excel
+- Export with bonus rates includes final_bonus in Summary
+- Reconciliation: pushed == consumed + remaining
+- Edge case data completes without exception
+- Empty file import produces zero results gracefully
+
+### Robustness (4 tests)
+- computeFifo works correctly through real Isolate.run()
+- buildExcelBytes works through real Isolate.run()
+- Export to read-only path returns permission error (not crash)
+- Import non-existent file returns friendly Vietnamese error
 
 ### Integration tests (3 tests)
 - App launches with initial state
