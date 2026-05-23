@@ -93,6 +93,9 @@ class CalculateService {
       'customerCode': d.customerCode, 'branch': d.branch, 'seasonalCode': d.seasonalCode,
       'documentNumber': d.documentNumber, 'documentDate': d.documentDate?.millisecondsSinceEpoch,
     }));
+    if (AppDatabase.testMode) {
+      return Future.value(computeFifo({'results': sr, 'dataMap': sd, 'runId': runId}));
+    }
     return Isolate.run(() => computeFifo({'results': sr, 'dataMap': sd, 'runId': runId}));
   }
 

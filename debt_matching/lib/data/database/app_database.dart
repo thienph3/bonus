@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
@@ -23,6 +24,11 @@ class AppDatabase extends _$AppDatabase {
 
   static AppDatabase? _instance;
   static AppDatabase get instance => _instance ??= AppDatabase._();
+  @visibleForTesting
+  static set instance(AppDatabase db) => _instance = db;
+  /// When true, services skip Isolate.run() and execute synchronously.
+  @visibleForTesting
+  static bool testMode = false;
 
   @override
   int get schemaVersion => 4;

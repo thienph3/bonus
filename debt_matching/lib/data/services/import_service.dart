@@ -17,7 +17,9 @@ class ImportService {
     ));
 
     onLog('📥 Parse Excel (background)...');
-    final parsed = await Isolate.run(() => parseExcelFile((filePath, runId)));
+    final parsed = AppDatabase.testMode
+        ? parseExcelFile((filePath, runId))
+        : await Isolate.run(() => parseExcelFile((filePath, runId)));
 
     final holidays = parsed['holidays']!;
     final levels = parsed['levels']!;

@@ -20,10 +20,11 @@ flutter test integration_test/ -d windows
 | Category | Runner | Tests | Files |
 |----------|--------|-------|-------|
 | Pure Dart | `dart test` | 45 | 5 files |
-| Flutter unit | `flutter test` | 27 | 5 files |
+| Flutter unit | `flutter test` | 37 | 6 files |
 | Widget | `flutter test test/widget/` | 23 | 6 files |
+| Pipeline | `flutter test test/pipeline_test.dart` | 10 | 1 file |
 | Integration | `flutter test integration_test/ -d windows` | 3 | 1 file |
-| **Total** | | **98** | **17 files** |
+| **Total** | | **118** | **19 files** |
 
 ## Test Coverage by Service
 
@@ -91,6 +92,18 @@ flutter test integration_test/ -d windows
 - Ctrl+O shortcut registered
 - Ctrl+E no crash when no run
 - App shows initial state on launch
+
+### pipeline (full integration) (10 tests)
+- ImportService: imports normal.xlsx with correct counts
+- ImportService: handles edge cases without crash
+- CalculateService: full pipeline completes with status 'completed'
+- CalculateService: cross-check logs reconciliation info
+- CalculateService: handles edge cases without crash
+- PreValidationService: reports issues for bad data
+- PreValidationService: no issues for clean data
+- ExportService: deleteRun removes all data atomically
+- Multi-period: two runs don't interfere
+- Retry: recalculate on 'imported' status works
 
 ### import_parser (5 tests)
 - Normal file: parses all sheets correctly
