@@ -25,8 +25,9 @@ flutter test integration_test/ -d windows
 | Pipeline | `flutter test test/pipeline_test.dart` | 10 | 1 file |
 | E2E | `flutter test test/e2e_test.dart` | 5 | 1 file |
 | Robustness | `flutter test test/robustness_test.dart` | 4 | 1 file |
+| Isolate import | `flutter test test/isolate_import_test.dart` | 2 | 1 file |
 | Integration | `flutter test integration_test/ -d windows` | 3 | 1 file |
-| **Total** | | **127** | **21 files** |
+| **Total** | | **129** | **22 files** |
 
 ## Test Coverage by Service
 
@@ -162,6 +163,10 @@ flutter test integration_test/ -d windows
 - buildExcelBytes works through real Isolate.run()
 - Export to read-only path returns permission error (not crash)
 - Import non-existent file returns friendly Vietnamese error
+
+### Isolate import (2 tests)
+- importFromExcel via real Isolate (testMode=false) with input.xlsx
+- importFromExcel via real Isolate (testMode=false) with template.xlsx
 
 ### Integration tests (3 tests)
 - App launches with initial state

@@ -1,12 +1,12 @@
-# REVIEW — Debt Matching Service
+# REVIEW — CKTT (Chiết khấu thanh toán đúng hạn)
 
-Review date: 2026-05-23 (updated after P1-P3 fixes)
+Review date: 2026-05-23 (updated after parseDate fix + UI improvements)
 
 ---
 
 ## Summary
 
-Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. Feature-complete, P1-P3 improvements applied. Production-ready cho internal use.
+Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. Feature-complete, all P1-P4 improvements applied. Production-ready cho internal use.
 
 ---
 
@@ -24,6 +24,8 @@ Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn tr�
 | 8 | Export 3 sheets: Summary (by customer) + Result + Matching Detail |
 | 9 | Clean separation: data / presentation / core, all files ≤150 LOC |
 | 10 | DI-ready (Riverpod Provider for DB) |
+| 11 | Column guide dialog with date format reference |
+| 12 | Custom illustrations + compressed assets (322KB total) |
 
 ---
 
@@ -68,9 +70,13 @@ Chi tiết → [IMPROVEMENTS.md](IMPROVEMENTS.md)
 | Load all records cho preview | SQL aggregate + LIMIT 20 |
 | Không có Summary sheet | Export grouped by customerCode |
 | Stack state dùng toString() | jsonEncode |
-| Không có template download | "Tải file mẫu" button |
+| Không có template download | "Tải file mẫu" button + bundled asset |
 | Dark mode hardcoded colors | Theme.colorScheme |
 | parseNumber truncate | .round() |
 | Cards fixed width | LayoutBuilder responsive |
 | Không loading khi switch run | setState processing |
 | DB không testable | Riverpod Provider + forTesting constructor |
+| Isolate capture unsendable DB | Top-level _parseInIsolate() function |
+| Template "not found" | rootBundle.load() thay File path |
+| parseDate miss ISO 8601 T format | DateTime.tryParse() trước DateFormat loop |
+| Không có hướng dẫn cột | Column guide dialog + date format tab |

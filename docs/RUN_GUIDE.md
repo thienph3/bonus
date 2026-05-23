@@ -43,6 +43,7 @@ File Excel cần có **3 sheet**:
 | `holiday_config` | Danh sách ngày nghỉ lễ |
 
 Bấm **"Tải file mẫu"** trong app để lấy template.
+Bấm **"?"** (Hướng dẫn cột) trên thanh tiêu đề để xem chi tiết cột + định dạng ngày hỗ trợ.
 
 ### Bước 2: Import & Tính toán
 
@@ -110,7 +111,7 @@ Dùng file `data/input.xlsx` (10MB, dữ liệu thực):
 ```cmd
 cd debt_matching
 
-:: Tất cả tests (114 tests)
+:: Tất cả tests (129 tests)
 flutter test
 
 :: Chỉ E2E pipeline (import→calculate→export)
@@ -126,7 +127,7 @@ flutter test integration_test/ -d windows
 ### Kết quả mong đợi
 
 ```
-✅ flutter test → "All 114 tests passed!"
+✅ flutter test → "All 129 tests passed!"
 ✅ Không có test nào fail
 ⚠️ WARNING (drift) về multiple databases → bỏ qua (chỉ hiện ở debug)
 ```

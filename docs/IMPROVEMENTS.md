@@ -60,6 +60,12 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 | 27 | Retry/cleanup cho stuck runs | 1 hour | ✅ Done |
 | 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min | ✅ Done |
 | 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours | ✅ Done |
+| 30 | Isolate.run() capture unsendable DB object | 10 min | ✅ Done |
+| 31 | Template download "not found" (rootBundle) | 15 min | ✅ Done |
+| 32 | parseDate miss ISO 8601 T format | 5 min | ✅ Done |
+| 33 | Column guide dialog + date format reference | 30 min | ✅ Done |
+| 34 | Custom illustrations + image compression | 30 min | ✅ Done |
+| 35 | App rename: CKTT - Đối trừ công nợ | 10 min | ✅ Done |
 
 ---
 
