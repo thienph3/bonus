@@ -132,6 +132,77 @@ Giữ Material 3 nhưng điều chỉnh cho phù hợp user kế toán + data-he
 
 ---
 
+## P8 — Package Upgrades (all to latest)
+
+Mục tiêu: upgrade toàn bộ dependencies lên latest. Chạy full test suite sau mỗi bước.
+
+### Bước 1: Safe upgrades (no breaking changes)
+
+```yaml
+# dev_dependencies
+build_runner: ^2.15.0      # 2.14.1 → 2.15.0
+image: ^4.9.0              # 4.3.0 → 4.9.0 (tool script only)
+```
+
+### Bước 2: Drift + SQLite3 migration (medium risk)
+
+```yaml
+# Remove:
+sqlite3_flutter_libs: ^0.5.28  # ← XÓA (EOL, không cần nữa)
+
+# Upgrade:
+drift: ^2.33.0             # 2.32.1 → 2.33.0
+drift_dev: ^2.33.0         # 2.32.1 → 2.33.0
+```
+
+- `sqlite3` 3.x tự bundle binaries qua Dart hooks
+- Xóa `sqlite3_flutter_libs` khỏi pubspec
+- Kiểm tra `NativeDatabase` setup trong `app_database.dart`
+- Test: DB open, import, calculate, export
+
+### Bước 3: intl upgrade (minor breaking)
+
+```yaml
+intl: ^0.20.2              # 0.19.0 → 0.20.2
+```
+
+- Kiểm tra `DateFormat`, `NumberFormat` API changes
+- Test: parse_utils_test, export_builder_test
+
+### Bước 4: file_picker major upgrade (breaking API)
+
+```yaml
+file_picker: ^11.0.2       # 8.3.7 → 11.0.2
+```
+
+- Check API changes: `pickFiles()`, `saveFile()` signatures
+- Update `dashboard_screen.dart`, `template_service.dart`
+- Test: manual import/export flow
+
+### Bước 5: flutter_riverpod major upgrade (breaking, largest effort)
+
+```yaml
+flutter_riverpod: ^3.3.1   # 2.6.1 → 3.3.1
+riverpod: ^3.2.1           # 2.6.1 → 3.2.1
+```
+
+- Riverpod 3.x có breaking changes (Provider → Notifier pattern)
+- Update `app_database.dart` provider setup
+- Update tất cả test files dùng `ProviderScope`
+- Effort: ~2-3 hours
+
+### Verification
+
+Sau mỗi bước:
+```cmd
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter test
+flutter test test/isolate_import_test.dart  # real Isolate
+```
+
+---
+
 ## #29 — Chunked FIFO Design (for 100k+ rows)
 
 ### Problem
