@@ -22,7 +22,7 @@ class AppDatabase extends _$AppDatabase {
   static AppDatabase get instance => _instance ??= AppDatabase._();
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -33,6 +33,13 @@ class AppDatabase extends _$AppDatabase {
         await customStatement('ALTER TABLE main_datas ADD COLUMN run_id TEXT');
         await customStatement('ALTER TABLE results ADD COLUMN run_id TEXT');
         await customStatement('ALTER TABLE matching_details ADD COLUMN run_id TEXT');
+      }
+      if (from < 3) {
+        await customStatement('CREATE INDEX IF NOT EXISTS idx_holiday_configs_run_id ON holiday_configs(run_id)');
+        await customStatement('CREATE INDEX IF NOT EXISTS idx_level_configs_run_id ON level_configs(run_id)');
+        await customStatement('CREATE INDEX IF NOT EXISTS idx_main_datas_run_id ON main_datas(run_id)');
+        await customStatement('CREATE INDEX IF NOT EXISTS idx_results_run_id ON results(run_id)');
+        await customStatement('CREATE INDEX IF NOT EXISTS idx_matching_details_run_id ON matching_details(run_id)');
       }
     },
   );

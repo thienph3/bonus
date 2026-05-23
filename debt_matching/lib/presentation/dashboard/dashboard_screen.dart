@@ -6,6 +6,7 @@ import '../../data/database/app_database.dart';
 import '../../data/services/import_service.dart';
 import '../../data/services/calculate_service.dart';
 import '../../data/services/export_service.dart';
+import '../../data/services/pre_validation_service.dart';
 import 'widgets/console_panel.dart';
 import 'widgets/preview_panel.dart';
 import 'widgets/run_selector.dart';
@@ -25,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final _import = ImportService();
   final _calc = CalculateService();
   final _export = ExportService();
+  final _validation = PreValidationService();
   final List<String> _logs = [];
   final _scroll = ScrollController();
 
@@ -33,6 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _currentRunId;
   List<RunHistory> _runs = [];
   PreviewData _preview = PreviewData(stats: {}, topResults: [], invalidCount: 0);
+  int _subStep = 0;
 
   @override
   void initState() { super.initState(); _loadRuns(); }
@@ -56,20 +59,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void _onSubStep(int step) => setState(() => _subStep = step);
+
   Future<void> _processFile() async {
     final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
     if (result == null) return;
-    setState(() { _state = AppState.processing; _logs.clear(); });
+    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
     try {
       final ir = await _import.importFromExcel(result.files.single.path!, _log);
       final runId = ir['runId'] as String;
-      final stats = await _calc.calculate(runId, _log, (_) {});
+      await _validation.validate(runId, _log);
+      final stats = await _calc.calculate(runId, _log, _onSubStep);
       _currentRunId = runId;
       _preview = await loadPreviewData(runId, stats);
       await _loadRuns();
       setState(() => _state = AppState.preview);
     } catch (e) {
-      setState(() { _state = AppState.error; _errorMsg = e.toString(); });
+      setState(() { _state = AppState.error; _errorMsg = _friendlyError(e); });
     }
   }
 
@@ -94,7 +100,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       await _export.exportToExcel(_currentRunId!, path, _log);
       setState(() { _state = AppState.exported; _exportedPath = path; });
     } catch (e) {
-      setState(() { _state = AppState.error; _errorMsg = e.toString(); });
+      setState(() { _state = AppState.error; _errorMsg = _friendlyError(e); });
     }
   }
 
@@ -103,6 +109,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _currentRunId = null;
     await _loadRuns();
     setState(() => _state = AppState.initial);
+  }
+
+  String _friendlyError(Object e) {
+    final msg = e.toString();
+    if (msg.contains('sheet') || msg.contains('Sheet') || msg.contains('table')) {
+      return 'File Excel không đúng format. Cần có 3 sheet: Data, level_config, holiday_config.';
+    }
+    if (msg.contains('permission') || msg.contains('denied') || msg.contains('access')) {
+      return 'Không có quyền truy cập file. Vui lòng kiểm tra lại.';
+    }
+    if (msg.contains('No such file') || msg.contains('FileSystemException')) {
+      return 'Không tìm thấy file. Vui lòng chọn lại.';
+    }
+    return 'Lỗi không xác định. Vui lòng liên hệ IT.\n\nChi tiết: $msg';
   }
 
   @override
@@ -124,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMain() => switch (_state) {
     AppState.initial => buildInitialView(context, _processFile),
-    AppState.processing => buildProcessingView(),
+    AppState.processing => buildProcessingView(_subStep),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults,
         invalidCount: _preview.invalidCount, onExport: _exportRun, onReset: _processFile),
     AppState.exported => buildExportedView(_exportedPath, () => setState(() => _state = AppState.preview)),

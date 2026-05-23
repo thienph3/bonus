@@ -22,6 +22,11 @@ class ImportService {
     final holidays = parsed['holidays']!;
     final levels = parsed['levels']!;
     final mainData = parsed['mainData']!;
+    final meta = parsed['meta']!;
+    final skippedLevels = (meta.isNotEmpty ? meta[0]['skippedLevels'] : 0) as int? ?? 0;
+    final skippedMainData = (meta.isNotEmpty ? meta[0]['skippedMainData'] : 0) as int? ?? 0;
+    if (skippedLevels > 0) onLog('⚠️ $skippedLevels dòng level_config bị bỏ qua (parse lỗi)');
+    if (skippedMainData > 0) onLog('⚠️ $skippedMainData dòng Data bị bỏ qua (parse lỗi)');
 
     onLog('📥 Lưu ${holidays.length} ngày lễ...');
     if (holidays.isNotEmpty) {

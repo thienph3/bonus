@@ -14,8 +14,12 @@ Map<String, List<Map<String, Object?>>> parseExcelFile((String, String) args) {
     'holidays': _parseHolidays(decoder, uuid, runId),
     'levels': _parseLevels(decoder, uuid, runId),
     'mainData': _parseMainData(decoder, uuid, runId),
+    'meta': [{'skippedLevels': _skippedLevels, 'skippedMainData': _skippedMainData}],
   };
 }
+
+int _skippedLevels = 0;
+int _skippedMainData = 0;
 
 List<Map<String, Object?>> _parseHolidays(SpreadsheetDecoder dec, Uuid uuid, String runId) {
   final table = dec.tables['holiday_config'];
@@ -34,6 +38,7 @@ List<Map<String, Object?>> _parseHolidays(SpreadsheetDecoder dec, Uuid uuid, Str
 List<Map<String, Object?>> _parseLevels(SpreadsheetDecoder dec, Uuid uuid, String runId) {
   final table = dec.tables['level_config'];
   if (table == null) return [];
+  _skippedLevels = 0;
   final rows = <Map<String, Object?>>[];
   for (int i = 1; i < table.rows.length; i++) {
     final row = table.rows[i];
@@ -51,7 +56,7 @@ List<Map<String, Object?>> _parseLevels(SpreadsheetDecoder dec, Uuid uuid, Strin
         'pdd2': parseDate(row.length > 7 ? row[7] : null)?.millisecondsSinceEpoch,
         'pdd3': parseDate(row.length > 8 ? row[8] : null)?.millisecondsSinceEpoch,
       });
-    } catch (_) {}
+    } catch (_) { _skippedLevels++; }
   }
   return rows;
 }
@@ -66,6 +71,7 @@ List<Map<String, Object?>> _parseMainData(SpreadsheetDecoder dec, Uuid uuid, Str
   }
   if (startRow == -1) return [];
 
+  _skippedMainData = 0;
   final rows = <Map<String, Object?>>[];
   for (int i = startRow; i < table.rows.length; i++) {
     final row = table.rows[i];
@@ -91,7 +97,7 @@ List<Map<String, Object?>> _parseMainData(SpreadsheetDecoder dec, Uuid uuid, Str
         'code': row[15]?.toString(),
         'salesMethod': row[16]?.toString() ?? '',
       });
-    } catch (_) {}
+    } catch (_) { _skippedMainData++; }
   }
   return rows;
 }

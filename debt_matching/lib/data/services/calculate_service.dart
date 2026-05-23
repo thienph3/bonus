@@ -60,6 +60,14 @@ class CalculateService {
       final diff = fifo.totalPushed - fifo.totalConsumed - fifo.totalRemaining;
       onLog(diff != 0 ? '⚠️ MISMATCH: $diff' : '✅ Reconciliation OK');
 
+      // Cross-check: tổng decrease trên sổ vs totalPushed
+      final sumDecrease = validResults.where((r) => r.type == 0)
+          .fold<int>(0, (s, r) => s + r.bonusDecrease + r.nonBonusDecrease);
+      final crossDiff = sumDecrease - fifo.totalPushed;
+      if (crossDiff != 0) {
+        onLog('⚠️ Cross-check: tổng decrease sổ ($sumDecrease) ≠ totalPushed (${fifo.totalPushed}), chênh lệch: $crossDiff');
+      }
+
       await writer.updateRunHistory(runId, fifo.totalBonus);
       onLog('✅ Hoàn tất. Tổng thưởng: ${fifo.totalBonus}');
       onSubStep(4);

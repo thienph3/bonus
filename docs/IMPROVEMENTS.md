@@ -19,16 +19,16 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ## P2 — Next Sprint (~5 hours)
 
-| # | Fix | Where | Effort |
+| # | Fix | Where | Status |
 |---|-----|-------|--------|
-| 5 | Thêm `weekday == 6 \|\| 7` check vào holiday loop | `parse_utils.dart` | 5 min |
-| 6 | `CREATE INDEX idx_*_run_id ON *(run_id)` + bump schema | `app_database.dart` migration | 10 min |
-| 7 | Pre-validation state: show invalid/duplicate/missing trước calculate | `dashboard_screen.dart` | 2-3 hrs |
-| 8 | Wire `onSubStep` callback → UI progress "Bước X/4" | `dashboard_screen.dart` | 20 min |
-| 9 | Map exceptions → Vietnamese messages + expandable detail | `dashboard_screen.dart` catch | 30 min |
-| 10 | Compare `sum(bonusDec+nonBonusDec)` vs `totalPushed`, log warning | `calculate_service.dart` | 15 min |
-| 11 | Count + return skipped rows, show warning | `import_parser.dart` | 15 min |
-| 12 | Detect duplicate `documentNumber` per group, add warning | `calculate_result_builder.dart` | 30 min |
+| 5 | Thêm `weekday == 6 \|\| 7` check vào holiday loop | `parse_utils.dart` | ⏸️ Needs recheck |
+| 6 | `CREATE INDEX idx_*_run_id ON *(run_id)` + bump schema | `app_database.dart` migration | ✅ Done |
+| 7 | Pre-validation state: show invalid/duplicate/missing trước calculate | `pre_validation_service.dart` | ✅ Done |
+| 8 | Wire `onSubStep` callback → UI progress "Bước X/4" | `dashboard_screen.dart` | ✅ Done |
+| 9 | Map exceptions → Vietnamese messages + expandable detail | `dashboard_screen.dart` catch | ✅ Done |
+| 10 | Compare `sum(bonusDec+nonBonusDec)` vs `totalPushed`, log warning | `calculate_service.dart` | ✅ Done |
+| 11 | Count + return skipped rows, show warning | `import_parser.dart` | ✅ Done |
+| 12 | Detect duplicate `documentNumber` per group, add warning | `calculate_result_builder.dart` | ✅ Done |
 
 ---
 

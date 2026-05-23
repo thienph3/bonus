@@ -28,6 +28,16 @@ class CalculateResultBuilder {
     List<MainData> datas,
     List<LevelConfig> sortedLevels,
   ) {
+    // Build duplicate doc set: (customerCode|branch|seasonalCode|docNumber)
+    final docCounts = <String, int>{};
+    for (final data in datas) {
+      final doc = data.documentNumber?.trim() ?? '';
+      if (doc.isEmpty) continue;
+      final key = '${data.customerCode}|${data.branch}|${data.seasonalCode}|$doc';
+      docCounts[key] = (docCounts[key] ?? 0) + 1;
+    }
+    final duplicateKeys = docCounts.entries.where((e) => e.value > 1).map((e) => e.key).toSet();
+
     final results = <ValidatedData>[];
     for (final data in datas) {
       String? levelId;
@@ -59,6 +69,15 @@ class CalculateResultBuilder {
           }
         }
         if (levelId == null) message = 'No matching level config';
+        // Check duplicate documentNumber within same group
+        final doc = data.documentNumber?.trim() ?? '';
+        if (doc.isNotEmpty) {
+          final key = '${data.customerCode}|${data.branch}|${data.seasonalCode}|$doc';
+          if (duplicateKeys.contains(key)) {
+            final warn = 'Duplicate documentNumber: $doc';
+            message = message.isEmpty ? warn : '$message; $warn';
+          }
+        }
       } else {
         message = errors.join('; ');
       }

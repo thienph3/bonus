@@ -12,11 +12,19 @@ Widget buildInitialView(BuildContext context, VoidCallback onPickFile) {
   ]));
 }
 
-Widget buildProcessingView() {
-  return const Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
-    CircularProgressIndicator(),
-    SizedBox(height: 16),
-    Text('Đang xử lý...'),
+Widget buildProcessingView(int subStep) {
+  const steps = ['Import & Validate', 'Tạo kết quả', 'Sắp xếp', 'FIFO', 'Hoàn tất'];
+  final label = subStep > 0 && subStep <= steps.length
+      ? 'Bước $subStep/${steps.length - 1}: ${steps[subStep]}'
+      : 'Đang xử lý...';
+  return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+    const CircularProgressIndicator(),
+    const SizedBox(height: 16),
+    Text(label),
+    if (subStep > 0) Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: LinearProgressIndicator(value: subStep / 4),
+    ),
   ]));
 }
 
