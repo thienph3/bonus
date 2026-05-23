@@ -19,11 +19,11 @@ flutter test integration_test/ -d windows
 
 | Category | Runner | Tests | Files |
 |----------|--------|-------|-------|
-| Pure Dart | `dart test` | 40 | 4 files |
-| Flutter unit | `flutter test` | 13 | 2 files |
-| Widget | `flutter test test/widget/` | 19 | 4 files |
+| Pure Dart | `dart test` | 45 | 5 files |
+| Flutter unit | `flutter test` | 27 | 5 files |
+| Widget | `flutter test test/widget/` | 23 | 6 files |
 | Integration | `flutter test integration_test/ -d windows` | 3 | 1 file |
-| **Total** | | **75** | **11 files** |
+| **Total** | | **98** | **17 files** |
 
 ## Test Coverage by Service
 
@@ -56,6 +56,41 @@ flutter test integration_test/ -d windows
 - Zero amounts: type=-1
 - Payment due dates from docDate + period
 - Holiday adjustment shifts due date
+
+### error_utils (5 tests)
+- Sheet-related error → Vietnamese message
+- Permission error → Vietnamese message
+- File not found → Vietnamese message
+- Unknown error → generic + detail
+- Table keyword triggers sheet message
+
+### calculate_writer (2 tests)
+- writeFifoResults writes bonus + matchings to DB
+- updateRunHistory sets status + totalBonus
+
+### pre_validation (3 tests)
+- Detects missing document numbers
+- Detects duplicate document numbers in same group
+- No issues with clean data
+
+### services (compare + override + config) (6 tests)
+- Compare: aggregates by customer across runs
+- Compare: handles customer only in one run
+- Override: updates bonus + records audit trail
+- Config: add/retrieve level config
+- Config: add/retrieve holiday config
+- Config: delete level config
+
+### Widget: bonus_rates_dialog (4 tests)
+- Shows 3 tier input fields
+- Has cancel/skip/apply buttons
+- Skip returns empty map
+- Cancel returns null
+
+### Widget: dashboard (3 tests)
+- Ctrl+O shortcut registered
+- Ctrl+E no crash when no run
+- App shows initial state on launch
 
 ### import_parser (5 tests)
 - Normal file: parses all sheets correctly
