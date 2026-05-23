@@ -109,6 +109,29 @@ Target: app phải hoạt động tốt từ 1024x768 đến 3840x2160 (4K).
 
 ---
 
+## P7 — Visual Style (professional desktop density)
+
+Giữ Material 3 nhưng điều chỉnh cho phù hợp user kế toán + data-heavy UI.
+
+| # | Change | Current | Target |
+|---|--------|---------|--------|
+| 52 | Giảm padding | 24px | 16px — hiển thị nhiều data hơn |
+| 53 | Mute color seed | `Colors.blue` (vibrant) | `Colors.indigo` hoặc `Colors.blueGrey` — corporate |
+| 54 | Card style | Elevated + rounded | Outlined/flat — ít playful hơn |
+| 55 | Table row colors | Trắng đều | Alternating row colors (zebra striping) |
+| 56 | Body text size | 14px (M3 default) | 13px cho data areas |
+| 57 | Icon colors in cards | Colorful per-card | Monochrome (primary only) — ít visual noise |
+| 58 | DataTable row height | 48px (M3 default) | 36-40px — denser |
+
+### Nguyên tắc style
+
+- **Modern framework, classical density** — M3 components nhưng spacing/sizing của desktop app
+- **Trust > delight** — Accountants cần tin tưởng kết quả, không cần animation fancy
+- **Data first** — Minimize chrome, maximize data visibility
+- **Monochrome + 1 accent** — Dùng 1 màu chủ đạo, còn lại neutral
+
+---
+
 ## #29 — Chunked FIFO Design (for 100k+ rows)
 
 ### Problem
