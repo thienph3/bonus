@@ -1,331 +1,204 @@
-# IMPROVEMENTS — Prioritized Action Items
+# IMPROVEMENTS
 
-Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md](REVIEW.md)
-
----
-
-## P1 — Fix Now (~45 min)
-
-| # | Fix | Where | Status |
-|---|-----|-------|--------|
-| 1 | `NumberFormat('#,###')` cho số tiền | `preview_panel.dart` | ✅ Done |
-| 2 | Pre-group matchingDetails by resultId (fix O(n²)) | `calculate_writer.dart` | ✅ Done |
-| 3 | Push 2 items khi cả bonusDec & nonBonusDec > 0 | `calculate_fifo.dart` | ⏸️ Needs confirmation |
-| 4 | Wrap `deleteRun` trong `_db.transaction()` | `export_service.dart` | ✅ Done |
-
-> **#3 Note:** Cần confirm với nghiệp vụ — có thể là intentional rule (chỉ push 1 loại).
+Danh sách cải thiện theo priority. Context → [REVIEW.md](REVIEW.md)
 
 ---
 
-## P2 — Next Sprint (~5 hours)
+## Tổng quan
 
-| # | Fix | Where | Status |
-|---|-----|-------|--------|
-| 5 | Thêm `weekday == 6 \|\| 7` check vào holiday loop | `parse_utils.dart` | ⏸️ Needs recheck |
-| 6 | `CREATE INDEX idx_*_run_id ON *(run_id)` + bump schema | `app_database.dart` migration | ✅ Done |
-| 7 | Pre-validation state: show invalid/duplicate/missing trước calculate | `pre_validation_service.dart` | ✅ Done |
-| 8 | Wire `onSubStep` callback → UI progress "Bước X/4" | `dashboard_screen.dart` | ✅ Done |
-| 9 | Map exceptions → Vietnamese messages + expandable detail | `dashboard_screen.dart` catch | ✅ Done |
-| 10 | Compare `sum(bonusDec+nonBonusDec)` vs `totalPushed`, log warning | `calculate_service.dart` | ✅ Done |
-| 11 | Count + return skipped rows, show warning | `import_parser.dart` | ✅ Done |
-| 12 | Detect duplicate `documentNumber` per group, add warning | `calculate_result_builder.dart` | ✅ Done |
-
----
-
-## P3 — Backlog (~6 hours)
-
-| # | Fix | Where | Status |
-|---|-----|-------|--------|
-| 13 | Console → collapsible bottom panel | `console_panel.dart` | ✅ Done |
-| 14 | Aggregate queries (COUNT, LIMIT 20) thay load all | `preview_loader.dart` | ✅ Done |
-| 15 | Thêm sheet "Summary" group by customerCode | `export_builder.dart` | ✅ Done |
-| 16 | `jsonEncode(stack)` thay `stack.toString()` | `calculate_fifo.dart` | ✅ Done |
-| 17 | Nút "Tải template" ở initial state | `dashboard_state_views.dart` | ✅ Done |
-| 18 | `Theme.of(context).colorScheme.errorContainer` thay hardcoded | `preview_panel.dart` | ✅ Done |
-| 19 | `.toInt()` → `.round()` | `parse_utils.dart` | ✅ Done |
-| 20 | `LayoutBuilder` + adaptive card width | `preview_panel.dart` | ✅ Done |
-| 21 | Show loading khi `_selectRun` | `dashboard_screen.dart` | ✅ Done |
-| 22 | Riverpod Provider cho DB, inject vào services | `app_database.dart` | ✅ Done |
+| Phase | Mô tả | Status |
+|-------|--------|--------|
+| P1 | Critical fixes | ✅ Done (trừ #3 chờ confirm) |
+| P2 | Performance + validation | ✅ Done (trừ #5 chờ recheck) |
+| P3 | UX improvements | ✅ Done |
+| P4 | Features + bug fixes | ✅ Done |
+| P5 | UX polish | 📋 Planned |
+| P6 | Responsive layout | 📋 Planned |
+| P7 | Visual style | 📋 Planned |
+| P8 | Package upgrades | ✅ Done |
 
 ---
 
-## P4 — Future (v1.2+)
+## ✅ Completed (P1–P4, P8)
 
-| # | Feature | Effort | Status |
-|---|---------|--------|--------|
-| 23 | So sánh giữa các kỳ | 2 days | ✅ Done |
-| 24 | Config UI cho level/holiday trong app | 3 days | ✅ Done |
-| 25 | Optional % input → tính tiền thưởng cuối | 1 day | ✅ Done |
-| 26 | Edit/override kết quả individual | 2 days | ✅ Done |
-| 27 | Retry/cleanup cho stuck runs | 1 hour | ✅ Done |
-| 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min | ✅ Done |
-| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours | ✅ Done |
-| 30 | Isolate.run() capture unsendable DB object | 10 min | ✅ Done |
-| 31 | Template download "not found" (rootBundle) | 15 min | ✅ Done |
-| 32 | parseDate miss ISO 8601 T format | 5 min | ✅ Done |
-| 33 | Column guide dialog + date format reference | 30 min | ✅ Done |
-| 34 | Custom illustrations + image compression | 30 min | ✅ Done |
-| 35 | App rename: CKTT - Đối trừ công nợ | 10 min | ✅ Done |
+<details>
+<summary>P1 — Critical Fixes</summary>
 
----
+| # | Fix | Status |
+|---|-----|--------|
+| 1 | NumberFormat cho số tiền | ✅ |
+| 2 | Pre-group matchingDetails (fix O(n²)) | ✅ |
+| 3 | Push 2 items khi cả bonusDec & nonBonusDec > 0 | ⏸️ Needs business confirmation |
+| 4 | deleteRun trong transaction | ✅ |
 
-## P5 — UX Polish (v1.2)
+</details>
 
-| # | Issue | Severity | Suggestion |
-|---|-------|----------|------------|
-| 36 | Import phase shows only spinner (25s no feedback) | Medium | Show "Importing X/31965 dòng..." in progress label |
-| 37 | Console expand icon inverted | Low | Use `expand_more` when collapsed, `expand_less` when expanded |
-| 38 | Export success button "Bắt đầu lại" misleading | Low | Rename to "Quay lại" (goes back to preview) |
-| 39 | Run selector status in English | Low | `(importing)` → `(lỗi)`, `(imported)` → `(chờ tính)`, `(completed)` → `(hoàn tất)` |
-| 40 | No drag-and-drop file import | Low | Desktop users expect drag .xlsx onto window |
-| 41 | Error text can overflow | Low | Wrap error message in SingleChildScrollView |
-| 42 | No "Mở file" button after export | Low | Open exported file directly from success screen |
-| 43 | Bonus rates dialog no validation feedback | Low | Show inline error when input is not a number |
-| 59 | **Sample Verification ("Kiểm tra mẫu")** | High | Xem bên dưới |
+<details>
+<summary>P2 — Performance + Validation</summary>
 
----
+| # | Fix | Status |
+|---|-----|--------|
+| 5 | Weekend check trong holiday loop | ⏸️ Needs recheck |
+| 6 | DB indexes on run_id | ✅ |
+| 7 | Pre-validation service | ✅ |
+| 8 | Progress UI (onSubStep) | ✅ |
+| 9 | Vietnamese error messages | ✅ |
+| 10 | Cross-check tổng sổ | ✅ |
+| 11 | Count skipped rows | ✅ |
+| 12 | Duplicate document detection | ✅ |
 
-## #59 — Sample Verification Design
+</details>
 
-### Mục đích
+<details>
+<summary>P3 — UX Improvements</summary>
 
-Cho kế toán spot-check kết quả bằng cách xem mẫu ngẫu nhiên với giải thích chi tiết từng cặp đối trừ. Không cần review 30k dòng — chỉ cần bấm "Kiểm tra mẫu" nhiều lần.
+| # | Fix | Status |
+|---|-----|--------|
+| 13 | Collapsible console | ✅ |
+| 14 | Aggregate queries (LIMIT 20) | ✅ |
+| 15 | Summary sheet in export | ✅ |
+| 16 | jsonEncode for stack state | ✅ |
+| 17 | Template download button | ✅ |
+| 18 | Theme.colorScheme | ✅ |
+| 19 | parseNumber .round() | ✅ |
+| 20 | LayoutBuilder responsive cards | ✅ |
+| 21 | Loading on switch run | ✅ |
+| 22 | Riverpod Provider for DB | ✅ |
 
-### UI
+</details>
 
-- **Button**: "Kiểm tra mẫu" trên preview panel (cạnh Export)
-- **Dialog**: Hiển thị 1 khách hàng ngẫu nhiên (có bonus > 0)
-- **"Mẫu khác"**: Bấm lại → pick khách hàng khác (không trùng lần trước)
+<details>
+<summary>P4 — Features + Bug Fixes</summary>
 
-### Nội dung dialog
+| # | Feature | Status |
+|---|---------|--------|
+| 23 | So sánh giữa các kỳ | ✅ |
+| 24 | Config UI (level/holiday) | ✅ |
+| 25 | Optional % → final bonus | ✅ |
+| 26 | Edit/override individual | ✅ |
+| 27 | Retry stuck runs | ✅ |
+| 28 | Keyboard shortcuts | ✅ |
+| 29 | Chunked FIFO (100k+ rows) | ✅ |
+| 30 | Isolate unsendable DB fix | ✅ |
+| 31 | Template rootBundle fix | ✅ |
+| 32 | parseDate ISO 8601 fix | ✅ |
+| 33 | Column guide dialog | ✅ |
+| 34 | Custom illustrations | ✅ |
+| 35 | App rename (CKTT) | ✅ |
 
-```
-┌─────────────────────────────────────────────────────┐
-│ Kiểm tra mẫu: KH001 - Nguyễn Văn A                │
-│ Chi nhánh: A03 | Vụ: DONGXUAN2023                   │
-├─────────────────────────────────────────────────────┤
-│ THANH TOÁN (đưa vào stack FIFO)                     │
-│  # │ Chứng từ   │ Ngày TT    │ Số tiền             │
-│  1 │ CXVT202/12 │ 18/12/2023 │ 96,900,000          │
-│  2 │ CXVT296/12 │ 26/12/2023 │ 55,000,000          │
-│                                                     │
-│ ĐỐI TRỪ (FIFO theo thứ tự)                         │
-│  CT Mua     │ CT Thanh toán │ Số tiền  │ Hạn  │Tier│
-│  XBVT291/11 │ CXVT296/12   │55,000,000│28/12 │ B1 │
-│                                                     │
-│  → Giải thích: Ngày TT 26/12 ≤ Hạn tier1 28/12    │
-│    → Đủ điều kiện Bonus 1                           │
-│                                                     │
-│ KẾT QUẢ: Bonus 1 = 55,000,000                      │
-│                                                     │
-│         [Mẫu khác]              [Đóng]              │
-└─────────────────────────────────────────────────────┘
-```
+</details>
 
-### Logic
+<details>
+<summary>P8 — Package Upgrades ✅</summary>
 
-1. Query distinct customers có `bonus_1 + bonus_2 + bonus_3 > 0` trong run
-2. Random pick 1 (exclude đã shown trong session)
-3. Query `matching_details` + `results` cho customer đó
-4. Với mỗi matching row, giải thích:
-   - `tier = bonus_1`: "Ngày TT {decreaseDate} ≤ Hạn tier1 {pdd1} → Bonus 1"
-   - `tier = bonus_2`: "Ngày TT {decreaseDate} ≤ Hạn tier2 {pdd2} → Bonus 2"
-   - `tier = bonus_3`: "Ngày TT {decreaseDate} ≤ Hạn tier3 {pdd3} → Bonus 3"
-   - `tier = none`: "Ngày TT {decreaseDate} > Hạn tier3 {pdd3} → Không thưởng"
+| Package | Before | After |
+|---------|--------|-------|
+| drift | 2.32.1 | 2.33.0 |
+| drift_dev | 2.32.1 | 2.33.0 |
+| sqlite3_flutter_libs | 0.5.42 | ❌ Removed (EOL) |
+| file_picker | 8.3.7 | 11.0.2 |
+| flutter_riverpod | 2.6.1 | 3.3.1 |
+| intl | 0.19.0 | 0.20.2 |
+| build_runner | 2.14.1 | 2.15.0 |
 
-### Data source
-
-Tất cả data đã có sẵn trong DB:
-- `results` → type, bonusIncrease, paymentDueDate1/2/3, bonus1/2/3
-- `matching_details` → increaseDocNumber, decreaseDocNumber, decreaseDate, amountMatched, bonusTier
-- `main_datas` → customerName, branch, seasonalCode
-
-### Effort: ~2-3 hours
+</details>
 
 ---
 
-## P6 — Responsive Layout (multi-resolution support)
+## 📋 Planned
 
-Target: app phải hoạt động tốt từ 1024x768 đến 3840x2160 (4K).
+### P5 — UX Polish
 
-| # | Issue | Resolution affected | Fix |
-|---|-------|-------------------|-----|
-| 44 | Preview action buttons overflow | < 900px width | Wrap buttons in `Wrap` widget thay vì `Row` |
-| 45 | Main content quá sparse trên ultrawide | > 1920px | Thêm `ConstrainedBox(maxWidth: 900)` cho main content |
-| 46 | Column guide dialog tràn viền | < 750px | `maxWidth: min(700, MediaQuery.width - 48)` |
-| 47 | Compare/Override dialog tràn viền | < 750px | Tương tự #46 |
-| 48 | Initial state illustration quá nhỏ trên 4K | > 2560px | Scale illustration theo `MediaQuery.size` |
-| 49 | Console panel fixed 150px height | Tất cả | Dùng `MediaQuery.size.height * 0.2` (20% screen) |
-| 50 | DataTable font quá nhỏ trên 4K | > 2560px | Scale font theo `MediaQuery.textScaleFactor` (Flutter tự handle nếu không hardcode) |
-| 51 | Card width clamp(120, 180) quá nhỏ trên 4K | > 2560px | Dùng `MediaQuery` để scale clamp values |
+| # | Issue | Severity | Fix |
+|---|-------|----------|-----|
+| 36 | Import: no progress during 25s | Medium | Show row count in progress label |
+| 37 | Console expand icon inverted | Low | Swap expand_more/expand_less |
+| 38 | "Bắt đầu lại" misleading after export | Low | Rename to "Quay lại" |
+| 39 | Run status in English | Low | Translate to Vietnamese |
+| 40 | No drag-and-drop | Low | Add DropTarget widget |
+| 41 | Error text overflow | Low | Wrap in ScrollView |
+| 42 | No "Mở file" after export | Low | Add open-file button |
+| 43 | Bonus rates: no validation | Low | Inline error on invalid input |
+| 59 | **Sample Verification** | High | See design below |
 
-### Nguyên tắc responsive
+### P6 — Responsive Layout
 
-1. **Không hardcode pixel values** — dùng relative sizing hoặc `MediaQuery`
-2. **Wrap thay Row** cho action buttons
-3. **ConstrainedBox(maxWidth)** cho content area — tránh quá rộng
-4. **Dialog dùng `MediaQuery.of(context).size`** để tính maxWidth/maxHeight
-5. **Test ở 3 breakpoints**: 1024x768, 1920x1080, 3840x2160
+Target: 1024x768 → 3840x2160
 
----
+| # | Issue | Fix |
+|---|-------|-----|
+| 44 | Buttons overflow < 900px | `Wrap` thay `Row` |
+| 45 | Content sparse > 1920px | `ConstrainedBox(maxWidth: 900)` |
+| 46 | Dialog tràn < 750px | Dynamic maxWidth via MediaQuery |
+| 47 | Compare/Override dialog tràn | Tương tự #46 |
+| 48 | Illustration nhỏ trên 4K | Scale theo screen size |
+| 49 | Console fixed 150px | 20% screen height |
+| 50 | Font nhỏ trên 4K | Respect textScaleFactor |
+| 51 | Card clamp quá nhỏ trên 4K | Scale clamp values |
 
-## P7 — Visual Style (professional desktop density)
+### P7 — Visual Style
 
-Giữ Material 3 nhưng điều chỉnh cho phù hợp user kế toán + data-heavy UI.
+Nguyên tắc: Modern framework, classical density.
 
-| # | Change | Current | Target |
-|---|--------|---------|--------|
-| 52 | Giảm padding | 24px | 16px — hiển thị nhiều data hơn |
-| 53 | Mute color seed | `Colors.blue` (vibrant) | `Colors.indigo` hoặc `Colors.blueGrey` — corporate |
-| 54 | Card style | Elevated + rounded | Outlined/flat — ít playful hơn |
-| 55 | Table row colors | Trắng đều | Alternating row colors (zebra striping) |
-| 56 | Body text size | 14px (M3 default) | 13px cho data areas |
-| 57 | Icon colors in cards | Colorful per-card | Monochrome (primary only) — ít visual noise |
-| 58 | DataTable row height | 48px (M3 default) | 36-40px — denser |
-
-### Nguyên tắc style
-
-- **Modern framework, classical density** — M3 components nhưng spacing/sizing của desktop app
-- **Trust > delight** — Accountants cần tin tưởng kết quả, không cần animation fancy
-- **Data first** — Minimize chrome, maximize data visibility
-- **Monochrome + 1 accent** — Dùng 1 màu chủ đạo, còn lại neutral
-
----
-
-## P8 — Package Upgrades (all to latest) ✅ Done
-
-Completed: drift 2.33, file_picker 11, riverpod 3, intl 0.20, sqlite3_flutter_libs removed, build_runner 2.15.
-
-### Bước 1: Safe upgrades (no breaking changes)
-
-```yaml
-# dev_dependencies
-build_runner: ^2.15.0      # 2.14.1 → 2.15.0
-image: ^4.9.0              # 4.3.0 → 4.9.0 (tool script only)
-```
-
-### Bước 2: Drift + SQLite3 migration (medium risk)
-
-```yaml
-# Remove:
-sqlite3_flutter_libs: ^0.5.28  # ← XÓA (EOL, không cần nữa)
-
-# Upgrade:
-drift: ^2.33.0             # 2.32.1 → 2.33.0
-drift_dev: ^2.33.0         # 2.32.1 → 2.33.0
-```
-
-- `sqlite3` 3.x tự bundle binaries qua Dart hooks
-- Xóa `sqlite3_flutter_libs` khỏi pubspec
-- Kiểm tra `NativeDatabase` setup trong `app_database.dart`
-- Test: DB open, import, calculate, export
-
-### Bước 3: intl upgrade (minor breaking)
-
-```yaml
-intl: ^0.20.2              # 0.19.0 → 0.20.2
-```
-
-- Kiểm tra `DateFormat`, `NumberFormat` API changes
-- Test: parse_utils_test, export_builder_test
-
-### Bước 4: file_picker major upgrade (breaking API)
-
-```yaml
-file_picker: ^11.0.2       # 8.3.7 → 11.0.2
-```
-
-- Check API changes: `pickFiles()`, `saveFile()` signatures
-- Update `dashboard_screen.dart`, `template_service.dart`
-- Test: manual import/export flow
-
-### Bước 5: flutter_riverpod major upgrade (breaking, largest effort)
-
-```yaml
-flutter_riverpod: ^3.3.1   # 2.6.1 → 3.3.1
-riverpod: ^3.2.1           # 2.6.1 → 3.2.1
-```
-
-- Riverpod 3.x có breaking changes (Provider → Notifier pattern)
-- Update `app_database.dart` provider setup
-- Update tất cả test files dùng `ProviderScope`
-- Effort: ~2-3 hours
-
-### Verification
-
-Sau mỗi bước:
-```cmd
-flutter pub get
-dart run build_runner build --delete-conflicting-outputs
-flutter test
-flutter test test/isolate_import_test.dart  # real Isolate
-```
+| # | Change | Current → Target |
+|---|--------|-----------------|
+| 52 | Padding | 24px → 16px |
+| 53 | Color seed | blue → indigo/blueGrey |
+| 54 | Card style | Elevated → Outlined/flat |
+| 55 | Table rows | White → Zebra striping |
+| 56 | Body text | 14px → 13px (data areas) |
+| 57 | Icon colors | Colorful → Monochrome |
+| 58 | Row height | 48px → 36-40px |
 
 ---
 
-## #29 — Chunked FIFO Design (for 100k+ rows)
+## 📐 Designs
 
-### Problem
+### #59 — Sample Verification ("Kiểm tra mẫu")
 
-Current approach: 1 transaction wraps entire FIFO for all groups. With 100k+ rows:
-- Peak RAM 200-500MB (all results in memory)
-- DB locked 60-120s continuously
-- 1 crash = redo everything
+**Mục đích**: Kế toán spot-check kết quả bằng mẫu ngẫu nhiên với giải thích chi tiết.
 
-### Solution: 3-phase chunked processing
+**UI**: Button "Kiểm tra mẫu" → Dialog hiển thị 1 KH ngẫu nhiên (có bonus) → "Mẫu khác" để xem KH tiếp.
 
-```
-Phase 1: Prepare (1 transaction)
-  - Delete old results, build + insert result rows, sort, extract distinct groups
-  - Save group list to fifo_progress table
-  - Status: 'calculating'
+**Nội dung**:
+- Danh sách thanh toán (stack FIFO)
+- Từng cặp đối trừ với giải thích tier
+- Tổng kết bonus
 
-Phase 2: FIFO per group (N small transactions)
-  - For each group (customer, branch, seasonal):
-    - Compute FIFO (in-memory, <200 records per group)
-    - Write bonus + matchings in 1 transaction
-    - Mark group 'done' in fifo_progress
-    - Report progress: "150/500 nhóm (30%)"
-  - Batch 50 groups per Isolate call to amortize overhead
+**Giải thích mỗi matching**:
+- `bonus_1`: "Ngày TT ≤ Hạn tier1 → Đủ ĐK Bonus 1"
+- `bonus_2`: "Ngày TT ≤ Hạn tier2 → Đủ ĐK Bonus 2"
+- `bonus_3`: "Ngày TT ≤ Hạn tier3 → Đủ ĐK Bonus 3"
+- `none`: "Ngày TT > Hạn tier3 → Không thưởng"
 
-Phase 3: Finalize (1 transaction)
-  - Reconciliation check (aggregate across groups)
-  - Update run status → 'completed'
-  - Clean up fifo_progress entries
-```
+**Data**: Có sẵn trong `results` + `matching_details` + `main_datas`.
 
-### Schema addition
+**Effort**: ~2-3 hours.
 
-```sql
-CREATE TABLE fifo_progress (
-  run_id TEXT,
-  group_key TEXT,  -- "customerCode|branch|seasonalCode"
-  status TEXT DEFAULT 'pending',  -- pending → done
-  PRIMARY KEY (run_id, group_key)
-);
-```
+---
 
-### Crash recovery
+### #29 — Chunked FIFO (100k+ rows)
 
-| Crash at | Recovery |
-|----------|----------|
-| Phase 1 | Transaction rollback → re-run from scratch |
-| Phase 2 (group 300/500) | Resume from group 301 (skip 'done' groups) |
-| Phase 3 | All groups done → just finalize |
+**Problem**: 1 transaction cho toàn bộ FIFO → RAM cao, DB lock lâu, crash = redo all.
 
-### Performance (100k rows, 500 groups)
+**Solution**: 3-phase processing:
+1. **Prepare** — Build results, extract groups
+2. **FIFO per group** — Small transactions, crash-recoverable
+3. **Finalize** — Reconciliation, update status
 
-| Metric | Current | Chunked |
-|--------|---------|---------|
+**Performance**:
+| Metric | Before | After |
+|--------|--------|-------|
 | Peak RAM | 200-500MB | 20-50MB |
-| Crash cost | Redo 120s | Redo <1s (1 group) |
-| DB lock | 120s continuous | 200ms per group |
-| UI progress | Spinner only | Live per-group progress |
+| DB lock | 120s continuous | 200ms/group |
+| Crash cost | Redo all | Redo 1 group |
+| Progress | Spinner | Live per-group |
 
-### Resume logic
+---
 
-```dart
-final pending = await getGroupsWithStatus(runId, 'pending');
-if (pending.isEmpty) { finalize(); return; }
-// Continue from first pending group
-```
+## ⏸️ Pending Business Confirmation
+
+| # | Issue | Question |
+|---|-------|----------|
+| 3 | Decrease push logic | Push 1 loại hay 2 loại khi cả bonus & non-bonus > 0? |
+| 5 | Holiday adjustment | Có skip cuối tuần (T7/CN) không? |
