@@ -4,7 +4,7 @@ debt_matching/build/
 debt_matching/.packages
 debt_matching/.pub-cache/
 debt_matching/.pub/
-debt_matching/*.g.dart
+debt_matching/**/*.g.dart
 debt_matching/windows/flutter/generated_*
 
 # IDE
