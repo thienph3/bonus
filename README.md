@@ -78,3 +78,15 @@ Yêu cầu: Flutter SDK (stable), Windows
 | `debt_matching/assets/template.xlsx` | File mẫu Excel | — |
 
 Prompts để generate images: [prompts/](prompts/)
+
+## Tool Scripts
+
+```bash
+cd debt_matching
+
+# Compress illustration PNGs
+dart run tool/compress_images.dart
+
+# Generate app_icon.ico from assets/app_icon.png
+dart run tool/generate_ico.dart
+```
