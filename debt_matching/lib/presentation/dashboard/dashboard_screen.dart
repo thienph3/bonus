@@ -150,6 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
     AppState.processing => buildProcessingView(_subStep, importProgress: _importProgress),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults, invalidCount: _preview.invalidCount,
+        invalidReasons: _preview.invalidReasons,
         onExport: _exportRun, onReset: _processFile, onOverride: _showOverride, onVerify: _showVerify,
         onCompare: _runs.where((r) => r.status == 'completed').length > 1 ? _showCompare : null),
     AppState.exported => buildExportedView(_exportedPath, () => setState(() => _state = AppState.preview)),

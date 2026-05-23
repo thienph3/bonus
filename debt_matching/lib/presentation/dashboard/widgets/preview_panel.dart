@@ -7,6 +7,7 @@ class PreviewPanel extends StatelessWidget {
   final Map<String, dynamic> stats;
   final List<Map<String, dynamic>> topResults;
   final int invalidCount;
+  final Map<String, int> invalidReasons;
   final VoidCallback onExport;
   final VoidCallback onReset;
   final VoidCallback? onCompare;
@@ -18,6 +19,7 @@ class PreviewPanel extends StatelessWidget {
     required this.stats,
     required this.topResults,
     required this.invalidCount,
+    this.invalidReasons = const {},
     required this.onExport,
     required this.onReset,
     this.onCompare,
@@ -109,7 +111,9 @@ class PreviewPanel extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('⚠️ Cảnh báo', style: TextStyle(
             fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onErrorContainer)),
-          if (invalidCount > 0) Text('• $invalidCount records không hợp lệ (thiếu data hoặc không match level)'),
+          if (invalidCount > 0 && invalidReasons.isEmpty)
+            Text('• $invalidCount records không hợp lệ'),
+          ...invalidReasons.entries.map((e) => Text('• ${e.value} records: ${e.key}', style: const TextStyle(fontSize: 12))),
           if (!recon) const Text('• Reconciliation MISMATCH — kiểm tra lại dữ liệu'),
         ]),
       ),

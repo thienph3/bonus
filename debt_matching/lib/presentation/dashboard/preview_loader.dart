@@ -5,7 +5,8 @@ class PreviewData {
   final Map<String, dynamic> stats;
   final List<Map<String, dynamic>> topResults;
   final int invalidCount;
-  PreviewData({required this.stats, required this.topResults, required this.invalidCount});
+  final Map<String, int> invalidReasons;
+  PreviewData({required this.stats, required this.topResults, required this.invalidCount, this.invalidReasons = const {}});
 }
 
 Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStats) async {
@@ -60,5 +61,19 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
   stats['total_consumed'] ??= 0;
   stats['total_remaining'] ??= 0;
 
-  return PreviewData(stats: stats, topResults: topResults, invalidCount: invalidCount);
+  // Breakdown of invalid reasons
+  final invalidReasons = <String, int>{};
+  if (invalidCount > 0) {
+    final rows = await db.customSelect(
+      'SELECT calculate_message, COUNT(*) as cnt FROM results '
+      'WHERE run_id = ? AND calculate_status != \'valid\' AND calculate_message != \'\' '
+      'GROUP BY calculate_message ORDER BY cnt DESC',
+      variables: [Variable.withString(runId)],
+    ).get();
+    for (final r in rows) {
+      invalidReasons[r.read<String>('calculate_message')] = r.read<int>('cnt');
+    }
+  }
+
+  return PreviewData(stats: stats, topResults: topResults, invalidCount: invalidCount, invalidReasons: invalidReasons);
 }
