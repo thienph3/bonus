@@ -12,7 +12,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify app title
-      expect(find.text('Debt Matching'), findsOneWidget);
+      expect(find.text('CKTT - Đối trừ công nợ'), findsOneWidget);
       // Verify initial state — file picker button
       expect(find.text('Chọn file Excel'), findsOneWidget);
       // Verify template button

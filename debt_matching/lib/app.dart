@@ -17,7 +17,7 @@ class _DebtMatchingAppState extends State<DebtMatchingApp> {
     return ListenableBuilder(
       listenable: themeProvider,
       builder: (context, _) => MaterialApp(
-        title: 'Debt Matching',
+        title: 'CKTT - Đối trừ công nợ',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true, brightness: Brightness.light),
         darkTheme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true, brightness: Brightness.dark),

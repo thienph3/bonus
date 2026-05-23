@@ -10,7 +10,7 @@ void main() {
       await tester.pumpWidget(const ProviderScope(child: DebtMatchingApp()));
       await tester.pumpAndSettle();
       // Verify app renders with shortcuts — actual file picker can't run in test
-      expect(find.text('Debt Matching'), findsOneWidget);
+      expect(find.text('CKTT - Đối trừ công nợ'), findsOneWidget);
       expect(find.text('Chọn file Excel'), findsOneWidget);
     });
 
@@ -30,7 +30,7 @@ void main() {
     testWidgets('app shows initial state on launch', (tester) async {
       await tester.pumpWidget(const ProviderScope(child: DebtMatchingApp()));
       await tester.pumpAndSettle();
-      expect(find.text('Debt Matching'), findsOneWidget);
+      expect(find.text('CKTT - Đối trừ công nợ'), findsOneWidget);
       expect(find.text('Chọn file Excel'), findsOneWidget);
     });
   });

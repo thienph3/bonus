@@ -124,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       bindings: {const SingleActivator(LogicalKeyboardKey.keyO, control: true): _processFile,
         const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun},
       child: Focus(autofocus: true, child: Scaffold(
-        appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true, actions: [
+        appBar: AppBar(title: const Text('CKTT - Đối trừ công nợ'), centerTitle: true, actions: [
           if (_currentRunId != null) IconButton(icon: const Icon(Icons.settings), tooltip: 'Cấu hình',
             onPressed: () => showDialog(context: context, builder: (_) => ConfigDialog(runId: _currentRunId!))),
           IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
