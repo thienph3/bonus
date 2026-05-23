@@ -35,7 +35,6 @@ Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn tr�
 |---|-------|--------|
 | 3 | Decrease chỉ push 1 loại (bonus OR non_bonus) | ⏸️ Needs business confirmation |
 | 5 | Không skip cuối tuần trong holiday adjustment | ⏸️ Needs recheck |
-| 29 | Chunked FIFO per group (for 100k+ rows) | 📋 Designed, not implemented |
 
 Chi tiết → [IMPROVEMENTS.md](IMPROVEMENTS.md)
 

@@ -1,4 +1,4 @@
-# Debt Matching - Tính chiết khấu thanh toán đúng hạn
+# CKTT - Chiết khấu thanh toán đúng hạn
 
 Ứng dụng desktop (Flutter/Windows) hỗ trợ kế toán tính **chiết khấu thanh toán đúng hạn** trên TK 131 (Phải thu khách hàng), dựa trên đối trừ công nợ FIFO.
 
@@ -34,8 +34,11 @@ Hỗ trợ **nhiều kỳ**: mỗi lần import tạo 1 kỳ mới, data cũ đ�
 - Reconciliation check (tổng pushed = consumed + remaining) + cross-check tổng sổ
 - Multi-period: lưu lịch sử các kỳ, xem/export/xóa từng kỳ
 - Export: Summary theo khách hàng + Result + Matching Detail
+- So sánh giữa các kỳ, chỉnh sửa bonus individual
 - Heavy computation chạy trong Isolate (UI không jank)
 - Collapsible console với real-time log
+- Column guide dialog (hướng dẫn cột + định dạng ngày)
+- Keyboard shortcuts (Ctrl+O, Ctrl+E)
 - Light/Dark theme
 - Audit trail (RunHistories)
 
