@@ -55,13 +55,14 @@ class PreviewPanel extends StatelessWidget {
       spacing: 12, runSpacing: 12,
       children: [
         _card(context, 'Records', '${stats['total_records']}', Icons.list_alt),
-        _card(context, 'Invalid', '$invalidCount', Icons.warning, color: invalidCount > 0 ? Colors.orange : null),
+        _card(context, 'Invalid', '$invalidCount', Icons.warning,
+            color: invalidCount > 0 ? Theme.of(context).colorScheme.error : null),
         _card(context, 'Bonus 1', _nf.format(stats['bonus_1'] ?? 0), Icons.looks_one),
         _card(context, 'Bonus 2', _nf.format(stats['bonus_2'] ?? 0), Icons.looks_two),
         _card(context, 'Bonus 3', _nf.format(stats['bonus_3'] ?? 0), Icons.looks_3),
         _card(context, 'Tổng thưởng', _nf.format(stats['total_bonus']), Icons.monetization_on),
         _card(context, 'Reconciliation', recon ? 'OK' : 'MISMATCH', Icons.check_circle,
-            color: recon ? Colors.green : Colors.red),
+            color: recon ? Colors.green : Theme.of(context).colorScheme.error),
       ],
     );
   }
@@ -85,11 +86,12 @@ class PreviewPanel extends StatelessWidget {
 
   Widget _buildWarnings(BuildContext context, bool recon) {
     return Card(
-      color: Colors.orange[50],
+      color: Theme.of(context).colorScheme.errorContainer,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('⚠️ Cảnh báo', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text('⚠️ Cảnh báo', style: TextStyle(
+            fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onErrorContainer)),
           if (invalidCount > 0) Text('• $invalidCount records không hợp lệ (thiếu data hoặc không match level)'),
           if (!recon) const Text('• Reconciliation MISMATCH — kiểm tra lại dữ liệu'),
         ]),

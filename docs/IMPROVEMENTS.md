@@ -41,7 +41,7 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 | 15 | Thêm sheet "Summary" group by customerCode | `export_builder.dart` | 1 hr |
 | 16 | `jsonEncode(stack)` thay `stack.toString()` | `calculate_fifo.dart` | 10 min |
 | 17 | Nút "Tải template" ở initial state | `dashboard_state_views.dart` | 30 min |
-| 18 | `Theme.of(context).colorScheme.errorContainer` thay hardcoded | `preview_panel.dart` | 5 min |
+| 18 | `Theme.of(context).colorScheme.errorContainer` thay hardcoded | `preview_panel.dart` | ✅ Done |
 | 19 | `.toInt()` → `.round()` | `parse_utils.dart` | 2 min |
 | 20 | `LayoutBuilder` + adaptive card width | `preview_panel.dart` | 20 min |
 | 21 | Show loading khi `_selectRun` | `dashboard_screen.dart` | 5 min |
