@@ -20,6 +20,7 @@ class RunSelector extends StatelessWidget {
   Widget build(BuildContext context) {
     if (runs.isEmpty) return const SizedBox.shrink();
     final fmt = DateFormat('dd/MM/yyyy HH:mm');
+    String statusLabel(String s) => switch (s) { 'importing' => 'lỗi', 'imported' => 'chờ tính', 'completed' => 'hoàn tất', _ => s };
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Padding(
@@ -35,7 +36,7 @@ class RunSelector extends StatelessWidget {
                 isExpanded: true,
                 underline: const SizedBox.shrink(),
                 items: runs.map((r) {
-                  final label = '${fmt.format(r.timestamp)} — ${r.recordCount} records (${r.status})';
+                  final label = '${fmt.format(r.timestamp)} — ${r.recordCount} records (${statusLabel(r.status)})';
                   return DropdownMenuItem(value: r.id, child: Text(label, overflow: TextOverflow.ellipsis));
                 }).toList(),
                 onChanged: (v) { if (v != null) onSelect(v); },

@@ -28,7 +28,7 @@ class _ConsolePanelState extends State<ConsolePanel> {
         decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).dividerColor))),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(children: [
-          Icon(_expanded ? Icons.expand_more : Icons.expand_less, size: 16),
+          Icon(_expanded ? Icons.expand_less : Icons.expand_more, size: 16),
           const SizedBox(width: 8),
           Text('Console (${widget.logs.length})', style: Theme.of(context).textTheme.labelSmall),
           const Spacer(),

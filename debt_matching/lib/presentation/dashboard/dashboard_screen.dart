@@ -38,7 +38,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final List<String> _logs = [];
   AppState _state = AppState.initial;
   String _errorMsg = '', _exportedPath = '';
-  String? _currentRunId;
+  String? _currentRunId, _importProgress;
   List<RunHistory> _runs = [];
   int _subStep = 0;
   PreviewData _preview = PreviewData(stats: {}, topResults: [], invalidCount: 0);
@@ -51,6 +51,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _log(String msg) {
+    if (msg.contains('Đã nhập') || msg.contains('Parse Excel')) {
+      _importProgress = msg.replaceAll(RegExp(r'^\[.*?\] '), '');
+    }
     setState(() => _logs.add('[${TimeOfDay.now().format(context)}] $msg'));
     Future.delayed(const Duration(milliseconds: 50), () {
       if (_scroll.hasClients) { _scroll.animateTo(_scroll.position.maxScrollExtent,
@@ -61,7 +64,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void _onSubStep(int step) => setState(() => _subStep = step);
 
   Future<void> _retryCalculate(String runId) async {
-    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
+    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; _importProgress = null; });
     _log('🔄 Tính lại kỳ bị gián đoạn...'); try {
       await _validation.validate(runId, _log);
       final stats = await _calc.calculate(runId, _log, _onSubStep);
@@ -73,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _processFile() async {
     final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
     if (result == null) return;
-    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
+    setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; _importProgress = null; });
     try {
       final path = result.files.single.path!;
       final ir = await _import.importFromExcel(path, _log);
@@ -143,7 +146,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildMain() => switch (_state) {
     AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
-    AppState.processing => buildProcessingView(_subStep),
+    AppState.processing => buildProcessingView(_subStep, importProgress: _importProgress),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults, invalidCount: _preview.invalidCount,
         onExport: _exportRun, onReset: _processFile, onOverride: _showOverride,
         onCompare: _runs.where((r) => r.status == 'completed').length > 1 ? _showCompare : null),
