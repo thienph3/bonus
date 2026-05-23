@@ -59,3 +59,73 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 | 26 | Edit/override kết quả individual | 2 days |
 | 27 | Retry/cleanup cho stuck runs | 1 hour |
 | 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min |
+| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours |
+
+---
+
+## #29 — Chunked FIFO Design (for 100k+ rows)
+
+### Problem
+
+Current approach: 1 transaction wraps entire FIFO for all groups. With 100k+ rows:
+- Peak RAM 200-500MB (all results in memory)
+- DB locked 60-120s continuously
+- 1 crash = redo everything
+
+### Solution: 3-phase chunked processing
+
+```
+Phase 1: Prepare (1 transaction)
+  - Delete old results, build + insert result rows, sort, extract distinct groups
+  - Save group list to fifo_progress table
+  - Status: 'calculating'
+
+Phase 2: FIFO per group (N small transactions)
+  - For each group (customer, branch, seasonal):
+    - Compute FIFO (in-memory, <200 records per group)
+    - Write bonus + matchings in 1 transaction
+    - Mark group 'done' in fifo_progress
+    - Report progress: "150/500 nhóm (30%)"
+  - Batch 50 groups per Isolate call to amortize overhead
+
+Phase 3: Finalize (1 transaction)
+  - Reconciliation check (aggregate across groups)
+  - Update run status → 'completed'
+  - Clean up fifo_progress entries
+```
+
+### Schema addition
+
+```sql
+CREATE TABLE fifo_progress (
+  run_id TEXT,
+  group_key TEXT,  -- "customerCode|branch|seasonalCode"
+  status TEXT DEFAULT 'pending',  -- pending → done
+  PRIMARY KEY (run_id, group_key)
+);
+```
+
+### Crash recovery
+
+| Crash at | Recovery |
+|----------|----------|
+| Phase 1 | Transaction rollback → re-run from scratch |
+| Phase 2 (group 300/500) | Resume from group 301 (skip 'done' groups) |
+| Phase 3 | All groups done → just finalize |
+
+### Performance (100k rows, 500 groups)
+
+| Metric | Current | Chunked |
+|--------|---------|---------|
+| Peak RAM | 200-500MB | 20-50MB |
+| Crash cost | Redo 120s | Redo <1s (1 group) |
+| DB lock | 120s continuous | 200ms per group |
+| UI progress | Spinner only | Live per-group progress |
+
+### Resume logic
+
+```dart
+final pending = await getGroupsWithStatus(runId, 'pending');
+if (pending.isEmpty) { finalize(); return; }
+// Continue from first pending group
+```
