@@ -64,3 +64,4 @@ Yêu cầu: Flutter SDK (stable), Windows
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema database |
 | [docs/REVIEW.md](docs/REVIEW.md) | Review tổng hợp + business rules + fix history |
 | [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | Danh sách cải thiện theo priority |
+| [docs/TESTING.md](docs/TESTING.md) | Hướng dẫn chạy test (72 tests) |
