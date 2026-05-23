@@ -18,6 +18,7 @@ import 'widgets/compare_dialog.dart';
 import 'widgets/override_dialog.dart';
 import 'widgets/config_dialog.dart';
 import 'widgets/column_guide_dialog.dart';
+import 'widgets/sample_verification_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
 enum AppState { initial, processing, preview, exported, error }
@@ -122,6 +123,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _downloadTemplate() => downloadTemplate(_log);
   void _showCompare() => showDialog(context: context, builder: (_) => CompareDialog(runs: _runs, currentRunId: _currentRunId!));
   void _showOverride() => showDialog(context: context, builder: (_) => OverrideDialog(runId: _currentRunId!));
+  void _showVerify() => showDialog(context: context, builder: (_) => SampleVerificationDialog(runId: _currentRunId!));
   @override
   Widget build(BuildContext context) {
     return CallbackShortcuts(
@@ -148,7 +150,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
     AppState.processing => buildProcessingView(_subStep, importProgress: _importProgress),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults, invalidCount: _preview.invalidCount,
-        onExport: _exportRun, onReset: _processFile, onOverride: _showOverride,
+        onExport: _exportRun, onReset: _processFile, onOverride: _showOverride, onVerify: _showVerify,
         onCompare: _runs.where((r) => r.status == 'completed').length > 1 ? _showCompare : null),
     AppState.exported => buildExportedView(_exportedPath, () => setState(() => _state = AppState.preview)),
     AppState.error => buildErrorView(_errorMsg, () => setState(() => _state = AppState.initial)),

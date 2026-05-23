@@ -11,6 +11,7 @@ class PreviewPanel extends StatelessWidget {
   final VoidCallback onReset;
   final VoidCallback? onCompare;
   final VoidCallback? onOverride;
+  final VoidCallback? onVerify;
 
   const PreviewPanel({
     super.key,
@@ -21,6 +22,7 @@ class PreviewPanel extends StatelessWidget {
     required this.onReset,
     this.onCompare,
     this.onOverride,
+    this.onVerify,
   });
 
   @override
@@ -51,6 +53,8 @@ class PreviewPanel extends StatelessWidget {
                 OutlinedButton.icon(onPressed: onCompare, icon: const Icon(Icons.compare_arrows), label: const Text('So sánh')),
               if (onOverride != null)
                 OutlinedButton.icon(onPressed: onOverride, icon: const Icon(Icons.edit), label: const Text('Chỉnh sửa')),
+              if (onVerify != null)
+                OutlinedButton.icon(onPressed: onVerify, icon: const Icon(Icons.fact_check), label: const Text('Kiểm tra mẫu')),
               FilledButton.icon(onPressed: onExport, icon: const Icon(Icons.download), label: const Text('Xuất kết quả')),
             ],
           ),
