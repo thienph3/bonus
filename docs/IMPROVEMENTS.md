@@ -69,6 +69,21 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ---
 
+## P5 — UX Polish (v1.2)
+
+| # | Issue | Severity | Suggestion |
+|---|-------|----------|------------|
+| 36 | Import phase shows only spinner (25s no feedback) | Medium | Show "Importing X/31965 dòng..." in progress label |
+| 37 | Console expand icon inverted | Low | Use `expand_more` when collapsed, `expand_less` when expanded |
+| 38 | Export success button "Bắt đầu lại" misleading | Low | Rename to "Quay lại" (goes back to preview) |
+| 39 | Run selector status in English | Low | `(importing)` → `(lỗi)`, `(imported)` → `(chờ tính)`, `(completed)` → `(hoàn tất)` |
+| 40 | No drag-and-drop file import | Low | Desktop users expect drag .xlsx onto window |
+| 41 | Error text can overflow | Low | Wrap error message in SingleChildScrollView |
+| 42 | No "Mở file" button after export | Low | Open exported file directly from success screen |
+| 43 | Bonus rates dialog no validation feedback | Low | Show inline error when input is not a number |
+
+---
+
 ## #29 — Chunked FIFO Design (for 100k+ rows)
 
 ### Problem
