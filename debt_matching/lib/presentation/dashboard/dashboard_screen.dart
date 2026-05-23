@@ -16,6 +16,7 @@ import 'widgets/run_selector.dart';
 import 'widgets/bonus_rates_dialog.dart';
 import 'widgets/compare_dialog.dart';
 import 'widgets/override_dialog.dart';
+import 'widgets/config_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
 enum AppState { initial, processing, preview, exported, error }
@@ -78,10 +79,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final runId = ir['runId'] as String;
       await _validation.validate(runId, _log);
       final stats = await _calc.calculate(runId, _log, _onSubStep);
-      _currentRunId = runId;
-      _preview = await loadPreviewData(runId, stats);
-      await _loadRuns();
-      setState(() => _state = AppState.preview);
+      _currentRunId = runId; _preview = await loadPreviewData(runId, stats);
+      await _loadRuns(); setState(() => _state = AppState.preview);
     } catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
   }
 
@@ -126,9 +125,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun},
       child: Focus(autofocus: true, child: Scaffold(
         appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true, actions: [
+          if (_currentRunId != null) IconButton(icon: const Icon(Icons.settings), tooltip: 'Cấu hình',
+            onPressed: () => showDialog(context: context, builder: (_) => ConfigDialog(runId: _currentRunId!))),
           IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
-              onPressed: widget.themeProvider.toggle, tooltip: 'Đổi theme'),
-        ]),
+            onPressed: widget.themeProvider.toggle, tooltip: 'Đổi theme')]),
         body: Column(children: [
           RunSelector(runs: _runs, selectedRunId: _currentRunId, onSelect: _selectRun, onDelete: _deleteRun),
           Expanded(child: _buildMain()),

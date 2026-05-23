@@ -53,13 +53,13 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 | # | Feature | Effort | Status |
 |---|---------|--------|--------|
-| 23 | So sánh giữa các kỳ | 2 days | Backlog |
-| 24 | Config UI cho level/holiday trong app | 3 days | Backlog |
+| 23 | So sánh giữa các kỳ | 2 days | ✅ Done |
+| 24 | Config UI cho level/holiday trong app | 3 days | ✅ Done |
 | 25 | Optional % input → tính tiền thưởng cuối | 1 day | ✅ Done |
-| 26 | Edit/override kết quả individual | 2 days | Backlog |
+| 26 | Edit/override kết quả individual | 2 days | ✅ Done |
 | 27 | Retry/cleanup cho stuck runs | 1 hour | ✅ Done |
 | 28 | Keyboard shortcuts (Ctrl+O, Ctrl+E) | 30 min | ✅ Done |
-| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours | ✅ Done (needs build_runner) |
+| 29 | **Chunked FIFO per group (100k+ rows)** | 2-3 hours | ✅ Done |
 
 ---
 
