@@ -81,6 +81,66 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 | 41 | Error text can overflow | Low | Wrap error message in SingleChildScrollView |
 | 42 | No "Mở file" button after export | Low | Open exported file directly from success screen |
 | 43 | Bonus rates dialog no validation feedback | Low | Show inline error when input is not a number |
+| 59 | **Sample Verification ("Kiểm tra mẫu")** | High | Xem bên dưới |
+
+---
+
+## #59 — Sample Verification Design
+
+### Mục đích
+
+Cho kế toán spot-check kết quả bằng cách xem mẫu ngẫu nhiên với giải thích chi tiết từng cặp đối trừ. Không cần review 30k dòng — chỉ cần bấm "Kiểm tra mẫu" nhiều lần.
+
+### UI
+
+- **Button**: "Kiểm tra mẫu" trên preview panel (cạnh Export)
+- **Dialog**: Hiển thị 1 khách hàng ngẫu nhiên (có bonus > 0)
+- **"Mẫu khác"**: Bấm lại → pick khách hàng khác (không trùng lần trước)
+
+### Nội dung dialog
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Kiểm tra mẫu: KH001 - Nguyễn Văn A                │
+│ Chi nhánh: A03 | Vụ: DONGXUAN2023                   │
+├─────────────────────────────────────────────────────┤
+│ THANH TOÁN (đưa vào stack FIFO)                     │
+│  # │ Chứng từ   │ Ngày TT    │ Số tiền             │
+│  1 │ CXVT202/12 │ 18/12/2023 │ 96,900,000          │
+│  2 │ CXVT296/12 │ 26/12/2023 │ 55,000,000          │
+│                                                     │
+│ ĐỐI TRỪ (FIFO theo thứ tự)                         │
+│  CT Mua     │ CT Thanh toán │ Số tiền  │ Hạn  │Tier│
+│  XBVT291/11 │ CXVT296/12   │55,000,000│28/12 │ B1 │
+│                                                     │
+│  → Giải thích: Ngày TT 26/12 ≤ Hạn tier1 28/12    │
+│    → Đủ điều kiện Bonus 1                           │
+│                                                     │
+│ KẾT QUẢ: Bonus 1 = 55,000,000                      │
+│                                                     │
+│         [Mẫu khác]              [Đóng]              │
+└─────────────────────────────────────────────────────┘
+```
+
+### Logic
+
+1. Query distinct customers có `bonus_1 + bonus_2 + bonus_3 > 0` trong run
+2. Random pick 1 (exclude đã shown trong session)
+3. Query `matching_details` + `results` cho customer đó
+4. Với mỗi matching row, giải thích:
+   - `tier = bonus_1`: "Ngày TT {decreaseDate} ≤ Hạn tier1 {pdd1} → Bonus 1"
+   - `tier = bonus_2`: "Ngày TT {decreaseDate} ≤ Hạn tier2 {pdd2} → Bonus 2"
+   - `tier = bonus_3`: "Ngày TT {decreaseDate} ≤ Hạn tier3 {pdd3} → Bonus 3"
+   - `tier = none`: "Ngày TT {decreaseDate} > Hạn tier3 {pdd3} → Không thưởng"
+
+### Data source
+
+Tất cả data đã có sẵn trong DB:
+- `results` → type, bonusIncrease, paymentDueDate1/2/3, bonus1/2/3
+- `matching_details` → increaseDocNumber, decreaseDocNumber, decreaseDate, amountMatched, bonusTier
+- `main_datas` → customerName, branch, seasonalCode
+
+### Effort: ~2-3 hours
 
 ---
 
