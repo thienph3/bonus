@@ -1,97 +1,74 @@
 # REVIEW — Debt Matching Service
 
 Review date: 2026-05-23
-Reviewed from: Accounting, Backend Engineering, UX/UI Design, Product Management
 
 ---
 
 ## Summary
 
-Debt Matching là desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. App đã feature-complete theo spec, deliver value rõ ràng (từ vài giờ Excel → vài giây), có audit trail và reconciliation check.
-
-**Overall assessment:** Production-ready cho scope hiện tại (internal tool, single-user, dataset <10k rows). Có tech debt và UX gaps cần address cho long-term maintainability và user adoption.
+Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. Feature-complete theo spec, production-ready cho scope hiện tại (internal, single-user, <10k rows).
 
 ---
 
 ## Strengths
 
-| # | Strength | Category |
-|---|----------|----------|
-| 1 | FIFO đối trừ đúng chuẩn VAS, reconciliation check tự động | Business Logic |
-| 2 | Matching Detail lưu chi tiết từng cặp đối trừ — đáp ứng audit | Business Logic |
-| 3 | Heavy computation trong Isolate — UI không jank | Performance |
-| 4 | Batch writes (100 rows) + transaction wrapping | Reliability |
-| 5 | Multi-period với runId isolation — không lẫn data | Architecture |
-| 6 | Single-screen workflow, state machine rõ ràng | UX |
-| 7 | Console panel real-time feedback | UX |
-| 8 | Light/Dark theme, Material 3 | UI |
-| 9 | Clean code separation (data/presentation/core) | Maintainability |
-| 10 | Feature completeness 100% theo spec | Product |
+| # | Strength |
+|---|----------|
+| 1 | FIFO đối trừ đúng chuẩn VAS, reconciliation check tự động |
+| 2 | Matching Detail audit trail — từng cặp đối trừ |
+| 3 | Heavy computation trong Isolate — UI không jank |
+| 4 | Batch writes + transaction wrapping |
+| 5 | Multi-period isolation (runId) |
+| 6 | Single-screen state machine, console real-time feedback |
+| 7 | Clean separation: data / presentation / core |
 
 ---
 
-## Issues Found
+## Issues Summary
 
-### Business Logic
+28 issues found. Chi tiết fix → [IMPROVEMENTS.md](IMPROVEMENTS.md)
 
-| # | Issue | Severity | Detail |
-|---|-------|----------|--------|
-| B1 | Chỉ skip ngày lễ, không skip cuối tuần | Medium | `changeDateByHolidays` không check Saturday/Sunday. Ngày đáo hạn có thể rơi vào cuối tuần → sai tier |
-| B2 | Decrease chỉ push 1 loại vào stack | High | Nếu chứng từ có cả `bonusDecrease > 0` VÀ `nonBonusDecrease > 0`, phần non_bonus bị mất — không tham gia đối trừ |
-| B3 | Không cross-check tổng sổ | Medium | Chỉ reconcile stack (pushed=consumed+remaining). Không verify tổng decrease trên sổ = tổng pushed |
-| B4 | `parseNumber` truncate thay vì round | Low | `double.toInt()` cắt phần thập phân, sai lệch nhỏ tích lũy |
-| B5 | Không validate trùng chứng từ | Medium | Duplicate `documentNumber` trong file → bonus tính gấp đôi |
-| B6 | Decrease trước increase trong cùng group (FIFO gom) | Accepted | Thanh toán ngày 15/3 có thể đối trừ với hóa đơn ngày 20/3. Đã ghi nhận là business rule |
-| B7 | Level matching lấy paymentPeriod lớn nhất match | Low | Cần confirm đúng ý đồ nghiệp vụ |
+| Severity | Count | Key items |
+|----------|-------|-----------|
+| High | 4 | O(n²) writer, decrease mất non_bonus, số tiền không format, thiếu pre-validation |
+| Medium | 12 | No weekend skip, no DB index, no cross-check tổng, no progress UI |
+| Low | 12 | Truncate vs round, dark mode colors, responsive cards, etc. |
 
-### Performance & Reliability
+### Top risks
 
-| # | Issue | Severity | Detail |
-|---|-------|----------|--------|
-| P1 | O(n²) trong `CalculateWriter.writeFifoResults` | High | Mỗi chunk scan toàn bộ matchingDetails. 10k results → 5M comparisons |
-| P2 | `deleteRun` không có transaction | Medium | Crash giữa chừng → orphan data |
-| P3 | Không có DB index trên `runId` | Medium | Full table scan trên mọi query filter by runId |
-| P4 | `previewLoader` load ALL records vào memory | Medium | Chỉ cần top 20 + counts, nhưng load toàn bộ |
-| P5 | Import parser silent `catch (_) {}` | Medium | Rows parse lỗi bị skip không warning |
-| P6 | `beforeRemain`/`afterRemain` lưu `toString()` | Low | Không parse lại được, nên dùng JSON |
-| P7 | Singleton DB không testable | Low | Không inject mock cho unit test |
-| P8 | Không có retry/idempotency cho calculate | Low | Run stuck ở status 'importing' nếu crash |
-
-### UX/UI
-
-| # | Issue | Severity | Detail |
-|---|-------|----------|--------|
-| U1 | Số tiền không format (raw integer) | High | "1234567890" thay vì "1,234,567,890" — unreadable cho kế toán |
-| U2 | Không có progress steps trong processing | Medium | Chỉ spinner + "Đang xử lý...", không biết đang ở bước nào |
-| U3 | Console chiếm 40% width | Medium | Secondary info chiếm quá nhiều space, ép main content |
-| U4 | Error hiển thị raw exception | Medium | Kế toán không đọc được technical error |
-| U5 | Dark mode — warning card hardcoded `Colors.orange[50]` | Low | Chói trong dark mode |
-| U6 | Summary cards fixed 150px, không responsive | Low | Wrap xấu trên màn hình nhỏ |
-| U7 | Không có loading state khi chuyển kỳ | Low | UI freeze vài giây không feedback |
-| U8 | Run selector label quá dài, khó scan | Low | Thiếu tên file, visual differentiation |
-| U9 | DataTable không alternating row colors | Low | Khó đọc nhiều rows |
-
-### Product Gaps
-
-| # | Issue | Severity | Detail |
-|---|-------|----------|--------|
-| G1 | Không có validation report trước calculate | High | User chỉ biết file sai SAU KHI chạy xong |
-| G2 | Không có summary theo khách hàng | Medium | Kế toán cần tổng bonus/KH để đối chiếu, gửi thông báo |
-| G3 | Không có onboarding/help | Medium | Kế toán mới không biết bắt đầu từ đâu, metric nghĩa gì |
-| G4 | Template file không accessible từ app | Low | `data/template.xlsx` tồn tại nhưng user phải tự tìm |
-| G5 | Không edit/override kết quả | Low | Case ngoại lệ phải sửa file gốc rồi re-import |
-| G6 | Không so sánh giữa các kỳ | Low | Không biết bonus tăng/giảm so với kỳ trước |
-| G7 | Không tính tiền thưởng cuối cùng (chỉ số tiền đủ điều kiện) | Low | Bộ phận chính sách phải nhân % riêng |
-| G8 | Không có config UI cho level/holiday | Low | Phải sửa file Excel để thay đổi config |
+| Risk | Likelihood | Impact |
+|------|-----------|--------|
+| Sai bonus do mất non_bonus decrease (B2) | Medium | High |
+| Performance timeout dataset lớn (P1) | High | Medium |
+| User import file sai không biết (G1) | High | Medium |
+| Data corruption khi delete crash (P2) | Low | High |
 
 ---
 
-## Risk Assessment
+## Business Rules (accepted)
 
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Tính sai bonus do B2 (mất non_bonus decrease) | Medium | High | Fix logic push 2 items |
-| Performance degradation với dataset lớn (P1) | High | Medium | Fix O(n²) → O(n) |
-| User import file sai, không biết (G1) | High | Medium | Pre-validation report |
-| Kế toán đọc sai số vì không format (U1) | Certain | Medium | NumberFormat |
-| Data corruption khi delete crash (P2) | Low | High | Transaction wrap |
+Các behavior đã confirm là intentional:
+
+| # | Rule |
+|---|------|
+| 1 | FIFO gom decrease trước increase (không theo timeline thực) |
+| 2 | Decrease chỉ push 1 loại (bonus HOẶC non_bonus) — cần re-confirm |
+| 3 | non_bonus increase consume stack không phân biệt |
+| 4 | bonus_1/2/3 = số tiền đủ điều kiện, không phải tiền thưởng thực |
+
+---
+
+## Fix History
+
+Các vấn đề đã được giải quyết trong quá trình phát triển:
+
+| Vấn đề ban đầu | Giải pháp |
+|-----------------|-----------|
+| FIFO/Import insert từng row | Batch 100 rows |
+| readAsBytesSync block UI | Isolate.run() cho Excel parse, FIFO, Excel build |
+| Holiday DateTime không normalize | Normalize trong parseDate + changeDateByHolidays |
+| Không có transaction | db.transaction() wrapper |
+| Không có audit trail | Bảng RunHistories + MatchingDetails |
+| Không validate tổng | Reconciliation check |
+| Flow 3 bước thừa | Gộp: Chọn file → Preview → Export |
+| Không hỗ trợ nhiều kỳ | runId trên mọi record, run selector |

@@ -59,4 +59,5 @@ Yêu cầu: Flutter SDK (stable), Windows
 |------|----------|
 | [docs/LOGIC_CALCULATE.md](docs/LOGIC_CALCULATE.md) | Thuật toán tính toán (FIFO, 3-tier bonus) |
 | [docs/DATABASE_SCHEMA.md](docs/DATABASE_SCHEMA.md) | Schema database |
-| [docs/KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md) | Known issues & fix history |
+| [docs/REVIEW.md](docs/REVIEW.md) | Review tổng hợp + business rules + fix history |
+| [docs/IMPROVEMENTS.md](docs/IMPROVEMENTS.md) | Danh sách cải thiện theo priority |
