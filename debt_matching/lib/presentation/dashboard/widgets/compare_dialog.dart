@@ -23,9 +23,10 @@ class _CompareDialogState extends State<CompareDialog> {
   @override
   Widget build(BuildContext context) {
     final otherRuns = widget.runs.where((r) => r.id != widget.currentRunId && r.status == 'completed').toList();
+    final size = MediaQuery.of(context).size;
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 500),
+        constraints: BoxConstraints(maxWidth: (size.width - 48).clamp(0, 700), maxHeight: (size.height - 96).clamp(0, 500)),
         child: Padding(padding: const EdgeInsets.all(16), child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text('So sánh kỳ', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),

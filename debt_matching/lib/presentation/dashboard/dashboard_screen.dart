@@ -134,7 +134,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             onPressed: widget.themeProvider.toggle, tooltip: 'Đổi theme')]),
         body: Column(children: [
           RunSelector(runs: _runs, selectedRunId: _currentRunId, onSelect: _selectRun, onDelete: _deleteRun),
-          Expanded(child: _buildMain()),
+          Expanded(child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 960), child: _buildMain()))),
           ConsolePanel(logs: _logs, scrollController: _scroll),
         ]),
       )),

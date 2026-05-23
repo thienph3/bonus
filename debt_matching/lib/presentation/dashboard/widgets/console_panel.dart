@@ -17,7 +17,7 @@ class _ConsolePanelState extends State<ConsolePanel> {
   Widget build(BuildContext context) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
       _buildBar(),
-      if (_expanded) SizedBox(height: 150, child: _buildLogList()),
+      if (_expanded) SizedBox(height: MediaQuery.of(context).size.height * 0.2, child: _buildLogList()),
     ]);
   }
 

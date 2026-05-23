@@ -9,9 +9,10 @@ class ColumnGuideDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Dialog(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 700, maxHeight: 600),
+        constraints: BoxConstraints(maxWidth: (size.width - 48).clamp(0, 700), maxHeight: (size.height - 96).clamp(0, 600)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

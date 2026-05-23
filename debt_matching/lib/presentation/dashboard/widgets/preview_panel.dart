@@ -41,19 +41,16 @@ class PreviewPanel extends StatelessWidget {
           const SizedBox(height: 16),
           _buildPreviewTable(context),
           const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               OutlinedButton.icon(onPressed: onReset, icon: const Icon(Icons.refresh), label: const Text('Chọn file khác')),
-              const SizedBox(width: 12),
-              if (onCompare != null) ...[
+              if (onCompare != null)
                 OutlinedButton.icon(onPressed: onCompare, icon: const Icon(Icons.compare_arrows), label: const Text('So sánh')),
-                const SizedBox(width: 12),
-              ],
-              if (onOverride != null) ...[
+              if (onOverride != null)
                 OutlinedButton.icon(onPressed: onOverride, icon: const Icon(Icons.edit), label: const Text('Chỉnh sửa')),
-                const SizedBox(width: 12),
-              ],
               FilledButton.icon(onPressed: onExport, icon: const Icon(Icons.download), label: const Text('Xuất kết quả')),
             ],
           ),
