@@ -4470,6 +4470,270 @@ class MatchingDetailsCompanion extends UpdateCompanion<MatchingDetail> {
   }
 }
 
+class $FifoProgressTable extends FifoProgress
+    with TableInfo<$FifoProgressTable, FifoProgressData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FifoProgressTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _runIdMeta = const VerificationMeta('runId');
+  @override
+  late final GeneratedColumn<String> runId = GeneratedColumn<String>(
+    'run_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupKeyMeta = const VerificationMeta(
+    'groupKey',
+  );
+  @override
+  late final GeneratedColumn<String> groupKey = GeneratedColumn<String>(
+    'group_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [runId, groupKey, status];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fifo_progress';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FifoProgressData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('run_id')) {
+      context.handle(
+        _runIdMeta,
+        runId.isAcceptableOrUnknown(data['run_id']!, _runIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_runIdMeta);
+    }
+    if (data.containsKey('group_key')) {
+      context.handle(
+        _groupKeyMeta,
+        groupKey.isAcceptableOrUnknown(data['group_key']!, _groupKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupKeyMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {runId, groupKey};
+  @override
+  FifoProgressData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FifoProgressData(
+      runId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}run_id'],
+      )!,
+      groupKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_key'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+    );
+  }
+
+  @override
+  $FifoProgressTable createAlias(String alias) {
+    return $FifoProgressTable(attachedDatabase, alias);
+  }
+}
+
+class FifoProgressData extends DataClass
+    implements Insertable<FifoProgressData> {
+  final String runId;
+  final String groupKey;
+  final String status;
+  const FifoProgressData({
+    required this.runId,
+    required this.groupKey,
+    required this.status,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['run_id'] = Variable<String>(runId);
+    map['group_key'] = Variable<String>(groupKey);
+    map['status'] = Variable<String>(status);
+    return map;
+  }
+
+  FifoProgressCompanion toCompanion(bool nullToAbsent) {
+    return FifoProgressCompanion(
+      runId: Value(runId),
+      groupKey: Value(groupKey),
+      status: Value(status),
+    );
+  }
+
+  factory FifoProgressData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FifoProgressData(
+      runId: serializer.fromJson<String>(json['runId']),
+      groupKey: serializer.fromJson<String>(json['groupKey']),
+      status: serializer.fromJson<String>(json['status']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'runId': serializer.toJson<String>(runId),
+      'groupKey': serializer.toJson<String>(groupKey),
+      'status': serializer.toJson<String>(status),
+    };
+  }
+
+  FifoProgressData copyWith({
+    String? runId,
+    String? groupKey,
+    String? status,
+  }) => FifoProgressData(
+    runId: runId ?? this.runId,
+    groupKey: groupKey ?? this.groupKey,
+    status: status ?? this.status,
+  );
+  FifoProgressData copyWithCompanion(FifoProgressCompanion data) {
+    return FifoProgressData(
+      runId: data.runId.present ? data.runId.value : this.runId,
+      groupKey: data.groupKey.present ? data.groupKey.value : this.groupKey,
+      status: data.status.present ? data.status.value : this.status,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FifoProgressData(')
+          ..write('runId: $runId, ')
+          ..write('groupKey: $groupKey, ')
+          ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(runId, groupKey, status);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FifoProgressData &&
+          other.runId == this.runId &&
+          other.groupKey == this.groupKey &&
+          other.status == this.status);
+}
+
+class FifoProgressCompanion extends UpdateCompanion<FifoProgressData> {
+  final Value<String> runId;
+  final Value<String> groupKey;
+  final Value<String> status;
+  final Value<int> rowid;
+  const FifoProgressCompanion({
+    this.runId = const Value.absent(),
+    this.groupKey = const Value.absent(),
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FifoProgressCompanion.insert({
+    required String runId,
+    required String groupKey,
+    this.status = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : runId = Value(runId),
+       groupKey = Value(groupKey);
+  static Insertable<FifoProgressData> custom({
+    Expression<String>? runId,
+    Expression<String>? groupKey,
+    Expression<String>? status,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (runId != null) 'run_id': runId,
+      if (groupKey != null) 'group_key': groupKey,
+      if (status != null) 'status': status,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FifoProgressCompanion copyWith({
+    Value<String>? runId,
+    Value<String>? groupKey,
+    Value<String>? status,
+    Value<int>? rowid,
+  }) {
+    return FifoProgressCompanion(
+      runId: runId ?? this.runId,
+      groupKey: groupKey ?? this.groupKey,
+      status: status ?? this.status,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (runId.present) {
+      map['run_id'] = Variable<String>(runId.value);
+    }
+    if (groupKey.present) {
+      map['group_key'] = Variable<String>(groupKey.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FifoProgressCompanion(')
+          ..write('runId: $runId, ')
+          ..write('groupKey: $groupKey, ')
+          ..write('status: $status, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4481,6 +4745,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MatchingDetailsTable matchingDetails = $MatchingDetailsTable(
     this,
   );
+  late final $FifoProgressTable fifoProgress = $FifoProgressTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4492,6 +4757,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     results,
     runHistories,
     matchingDetails,
+    fifoProgress,
   ];
 }
 
@@ -7245,6 +7511,168 @@ typedef $$MatchingDetailsTableProcessedTableManager =
       MatchingDetail,
       PrefetchHooks Function({bool resultId})
     >;
+typedef $$FifoProgressTableCreateCompanionBuilder =
+    FifoProgressCompanion Function({
+      required String runId,
+      required String groupKey,
+      Value<String> status,
+      Value<int> rowid,
+    });
+typedef $$FifoProgressTableUpdateCompanionBuilder =
+    FifoProgressCompanion Function({
+      Value<String> runId,
+      Value<String> groupKey,
+      Value<String> status,
+      Value<int> rowid,
+    });
+
+class $$FifoProgressTableFilterComposer
+    extends Composer<_$AppDatabase, $FifoProgressTable> {
+  $$FifoProgressTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupKey => $composableBuilder(
+    column: $table.groupKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FifoProgressTableOrderingComposer
+    extends Composer<_$AppDatabase, $FifoProgressTable> {
+  $$FifoProgressTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get runId => $composableBuilder(
+    column: $table.runId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupKey => $composableBuilder(
+    column: $table.groupKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FifoProgressTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FifoProgressTable> {
+  $$FifoProgressTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get runId =>
+      $composableBuilder(column: $table.runId, builder: (column) => column);
+
+  GeneratedColumn<String> get groupKey =>
+      $composableBuilder(column: $table.groupKey, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+}
+
+class $$FifoProgressTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FifoProgressTable,
+          FifoProgressData,
+          $$FifoProgressTableFilterComposer,
+          $$FifoProgressTableOrderingComposer,
+          $$FifoProgressTableAnnotationComposer,
+          $$FifoProgressTableCreateCompanionBuilder,
+          $$FifoProgressTableUpdateCompanionBuilder,
+          (
+            FifoProgressData,
+            BaseReferences<_$AppDatabase, $FifoProgressTable, FifoProgressData>,
+          ),
+          FifoProgressData,
+          PrefetchHooks Function()
+        > {
+  $$FifoProgressTableTableManager(_$AppDatabase db, $FifoProgressTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FifoProgressTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FifoProgressTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FifoProgressTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> runId = const Value.absent(),
+                Value<String> groupKey = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FifoProgressCompanion(
+                runId: runId,
+                groupKey: groupKey,
+                status: status,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String runId,
+                required String groupKey,
+                Value<String> status = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FifoProgressCompanion.insert(
+                runId: runId,
+                groupKey: groupKey,
+                status: status,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FifoProgressTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FifoProgressTable,
+      FifoProgressData,
+      $$FifoProgressTableFilterComposer,
+      $$FifoProgressTableOrderingComposer,
+      $$FifoProgressTableAnnotationComposer,
+      $$FifoProgressTableCreateCompanionBuilder,
+      $$FifoProgressTableUpdateCompanionBuilder,
+      (
+        FifoProgressData,
+        BaseReferences<_$AppDatabase, $FifoProgressTable, FifoProgressData>,
+      ),
+      FifoProgressData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7261,4 +7689,6 @@ class $AppDatabaseManager {
       $$RunHistoriesTableTableManager(_db, _db.runHistories);
   $$MatchingDetailsTableTableManager get matchingDetails =>
       $$MatchingDetailsTableTableManager(_db, _db.matchingDetails);
+  $$FifoProgressTableTableManager get fifoProgress =>
+      $$FifoProgressTableTableManager(_db, _db.fifoProgress);
 }
