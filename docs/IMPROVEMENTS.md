@@ -84,6 +84,31 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ---
 
+## P6 — Responsive Layout (multi-resolution support)
+
+Target: app phải hoạt động tốt từ 1024x768 đến 3840x2160 (4K).
+
+| # | Issue | Resolution affected | Fix |
+|---|-------|-------------------|-----|
+| 44 | Preview action buttons overflow | < 900px width | Wrap buttons in `Wrap` widget thay vì `Row` |
+| 45 | Main content quá sparse trên ultrawide | > 1920px | Thêm `ConstrainedBox(maxWidth: 900)` cho main content |
+| 46 | Column guide dialog tràn viền | < 750px | `maxWidth: min(700, MediaQuery.width - 48)` |
+| 47 | Compare/Override dialog tràn viền | < 750px | Tương tự #46 |
+| 48 | Initial state illustration quá nhỏ trên 4K | > 2560px | Scale illustration theo `MediaQuery.size` |
+| 49 | Console panel fixed 150px height | Tất cả | Dùng `MediaQuery.size.height * 0.2` (20% screen) |
+| 50 | DataTable font quá nhỏ trên 4K | > 2560px | Scale font theo `MediaQuery.textScaleFactor` (Flutter tự handle nếu không hardcode) |
+| 51 | Card width clamp(120, 180) quá nhỏ trên 4K | > 2560px | Dùng `MediaQuery` để scale clamp values |
+
+### Nguyên tắc responsive
+
+1. **Không hardcode pixel values** — dùng relative sizing hoặc `MediaQuery`
+2. **Wrap thay Row** cho action buttons
+3. **ConstrainedBox(maxWidth)** cho content area — tránh quá rộng
+4. **Dialog dùng `MediaQuery.of(context).size`** để tính maxWidth/maxHeight
+5. **Test ở 3 breakpoints**: 1024x768, 1920x1080, 3840x2160
+
+---
+
 ## #29 — Chunked FIFO Design (for 100k+ rows)
 
 ### Problem
