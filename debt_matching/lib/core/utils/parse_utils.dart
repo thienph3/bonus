@@ -28,6 +28,10 @@ DateTime? parseDate(dynamic value) {
   final str = value.toString().trim();
   if (str.isEmpty) return null;
 
+  // Try Dart's built-in ISO 8601 parser first
+  final iso = DateTime.tryParse(str);
+  if (iso != null) return DateTime(iso.year, iso.month, iso.day);
+
   final formats = [
     'dd/MM/yyyy',
     'yyyy-MM-dd',
