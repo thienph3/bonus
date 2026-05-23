@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 
 /// Copies bundled template.xlsx to user-chosen location.
 Future<String?> downloadTemplate(void Function(String) onLog) async {
-  final savePath = await FilePicker.platform.saveFile(
+  final savePath = await FilePicker.saveFile(
       dialogTitle: 'Lưu file mẫu', fileName: 'template.xlsx',
       type: FileType.custom, allowedExtensions: ['xlsx']);
   if (savePath == null) return null;

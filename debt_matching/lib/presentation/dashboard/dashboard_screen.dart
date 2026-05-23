@@ -71,7 +71,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _processFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
+    final result = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: ['xlsx', 'xls']);
     if (result == null) return;
     setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
     try {
@@ -103,7 +103,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (_currentRunId == null) return;
     final rates = await showBonusRatesDialog(context);
     if (rates == null) return; // cancelled
-    final path = await FilePicker.platform.saveFile(dialogTitle: 'Xuất kết quả',
+    final path = await FilePicker.saveFile(dialogTitle: 'Xuất kết quả',
         fileName: 'result.xlsx', type: FileType.custom, allowedExtensions: ['xlsx']);
     if (path == null) return;
     setState(() => _state = AppState.processing);
