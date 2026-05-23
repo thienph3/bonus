@@ -15,9 +15,13 @@ class CalculateResultBuilder {
     String runId,
   ) {
     final rows = <ResultsCompanion>[];
+    String? prevGroup;
     for (int idx = 0; idx < datas.length; idx++) {
       final data = datas[idx];
       final v = validated[idx];
+      final currentGroup = '${data.customerCode}|${data.branch}|${data.seasonalCode}';
+      final isFirstOrGroupChange = (idx == 0 || currentGroup != prevGroup);
+      prevGroup = currentGroup;
 
       final increase = data.increase ?? 0;
       final decrease = data.decrease ?? 0;
@@ -39,10 +43,8 @@ class CalculateResultBuilder {
       } else {
         type = -1;
         if (calcStatus == 'valid') {
-          final isOpening = (data.documentDate != null && data.documentDate!.year <= 1900)
-              || (data.description?.toLowerCase().contains('dư đầu kỳ') ?? false);
-          calcStatus = isOpening ? 'opening_balance' : 'invalid';
-          calcMessage = isOpening ? 'Số dư đầu kỳ' : 'Không có phát sinh';
+          calcStatus = isFirstOrGroupChange ? 'opening_balance' : 'invalid';
+          calcMessage = isFirstOrGroupChange ? 'Số dư đầu kỳ' : 'Không có phát sinh';
         }
       }
 
