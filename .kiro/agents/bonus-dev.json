@@ -1,0 +1,10 @@
+{
+  "name": "bonus-dev",
+  "description": "Debt Matching Flutter desktop app development",
+  "resources": [
+    "file://.kiro/steering.md",
+    "file://README.md",
+    "file://docs/REVIEW.md",
+    "file://docs/IMPROVEMENTS.md"
+  ]
+}
