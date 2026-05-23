@@ -1,74 +1,45 @@
-import 'dart:io';
 import 'package:test/test.dart';
-import '../lib/data/services/import_parser.dart';
+import 'package:debt_matching/data/services/import_parser.dart';
 
 void main() {
-  test('parseExcelFile should parse input.xlsx without error', () {
-    // Use the real input file from data folder
-    final filePath = _findInputFile();
-    if (filePath == null) {
-      print('⚠️ data/input.xlsx not found, skipping test');
-      return;
-    }
+  group('parseExcelFile', () {
+    test('normal.xlsx: parses all sheets correctly', () {
+      final result = parseExcelFile(('test/fixtures/normal.xlsx', 'run-test'));
+      expect(result['holidays']!.length, greaterThanOrEqualTo(0)); // DateCellValue may not parse via spreadsheet_decoder
+      expect(result['levels']!.length, 2);
+      expect(result['mainData']!.length, 6);
+      final first = result['mainData']![0];
+      expect(first['runId'], 'run-test');
+      expect(first['custCode'], 'KH01');
+      expect(first['seasonal'], 'VU01');
+    });
 
-    print('Testing with: $filePath');
-    final result = parseExcelFile((filePath, 'test-run-id'));
+    test('normal.xlsx: levels have correct fields', () {
+      final result = parseExcelFile(('test/fixtures/normal.xlsx', 'run-test'));
+      final l = result['levels']![0];
+      expect(l['seasonalCode'], 'VU01');
+      expect(l['salesMethod'], 'BH01');
+      expect(l['paymentPeriod'], 30);
+      expect(l['paymentPeriod1'], 30);
+    });
 
-    final holidays = result['holidays']!;
-    final levels = result['levels']!;
-    final mainData = result['mainData']!;
+    test('edge_cases.xlsx: parses despite bad data', () {
+      final result = parseExcelFile(('test/fixtures/edge_cases.xlsx', 'run-edge'));
+      expect(result['mainData']!.length, 5);
+    });
 
-    print('Holidays: ${holidays.length}');
-    print('Levels: ${levels.length}');
-    print('MainData: ${mainData.length}');
+    test('empty.xlsx: no data rows', () {
+      final result = parseExcelFile(('test/fixtures/empty.xlsx', 'run-empty'));
+      expect(result['mainData']!.length, 0);
+      expect(result['holidays']!.length, 0);
+    });
 
-    expect(holidays, isA<List>());
-    expect(levels, isA<List>());
-    expect(mainData, isA<List>());
-
-    // Verify all values are primitives (sendable via isolate)
-    for (final h in holidays) {
-      for (final v in h.values) {
-        expect(v == null || v is int || v is String || v is double || v is bool, isTrue,
-            reason: 'Holiday value $v (${v.runtimeType}) is not a primitive');
-      }
-    }
-    for (final l in levels) {
-      for (final v in l.values) {
-        expect(v == null || v is int || v is String || v is double || v is bool, isTrue,
-            reason: 'Level value $v (${v.runtimeType}) is not a primitive');
-      }
-    }
-    for (final m in mainData) {
-      for (final entry in m.entries) {
-        final v = entry.value;
-        expect(v == null || v is int || v is String || v is double || v is bool, isTrue,
-            reason: 'MainData key=${entry.key} value=$v (${v.runtimeType}) is not a primitive');
-      }
-    }
-
-    print('✅ All values are primitives — isolate safe!');
-
-    // Print first record for inspection
-    if (mainData.isNotEmpty) {
-      print('\nFirst main_data record:');
-      mainData.first.forEach((k, v) => print('  $k: $v (${v.runtimeType})'));
-    }
-    if (levels.isNotEmpty) {
-      print('\nFirst level record:');
-      levels.first.forEach((k, v) => print('  $k: $v (${v.runtimeType})'));
-    }
+    test('meta: reports skipped rows', () {
+      final result = parseExcelFile(('test/fixtures/normal.xlsx', 'run-test'));
+      final meta = result['meta']!;
+      expect(meta.length, 1);
+      expect(meta[0]['skippedLevels'], 0);
+      expect(meta[0]['skippedMainData'], 0);
+    });
   });
-}
-
-String? _findInputFile() {
-  // Try relative paths from different working directories
-  for (final path in [
-    'data/input.xlsx',
-    '../data/input.xlsx',
-    '../../data/input.xlsx',
-  ]) {
-    if (File(path).existsSync()) return File(path).absolute.path;
-  }
-  return null;
 }

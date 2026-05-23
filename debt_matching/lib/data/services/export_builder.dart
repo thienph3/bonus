@@ -3,8 +3,8 @@ import 'package:excel/excel.dart';
 
 /// Pure function: build Excel bytes from raw data. Runs in isolate.
 Uint8List? buildExcelBytes(Map<String, dynamic> input) {
-  final results = input['results'] as List<Map<String, dynamic>>;
-  final matchings = input['matchings'] as List<Map<String, dynamic>>;
+  final results = (input['results'] as List).cast<Map<String, dynamic>>();
+  final matchings = (input['matchings'] as List).cast<Map<String, dynamic>>();
   final bonusRates = input['bonusRates'] as Map<String, double>?;
 
   final excel = Excel.createExcel();
