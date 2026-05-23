@@ -17,6 +17,7 @@ import 'widgets/bonus_rates_dialog.dart';
 import 'widgets/compare_dialog.dart';
 import 'widgets/override_dialog.dart';
 import 'widgets/config_dialog.dart';
+import 'widgets/column_guide_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
 enum AppState { initial, processing, preview, exported, error }
@@ -125,6 +126,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun},
       child: Focus(autofocus: true, child: Scaffold(
         appBar: AppBar(title: const Text('CKTT - Đối trừ công nợ'), centerTitle: true, actions: [
+          IconButton(icon: const Icon(Icons.help_outline), tooltip: 'Hướng dẫn cột',
+            onPressed: () => showColumnGuideDialog(context)),
           if (_currentRunId != null) IconButton(icon: const Icon(Icons.settings), tooltip: 'Cấu hình',
             onPressed: () => showDialog(context: context, builder: (_) => ConfigDialog(runId: _currentRunId!))),
           IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
