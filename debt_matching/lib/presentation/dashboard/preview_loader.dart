@@ -15,7 +15,8 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
   // Aggregate counts and sums in one query
   final agg = await db.customSelect(
     'SELECT COUNT(*) as cnt, '
-    'SUM(CASE WHEN calculate_status != \'valid\' THEN 1 ELSE 0 END) as invalid, '
+    'SUM(CASE WHEN calculate_status NOT IN (\'valid\', \'opening_balance\') THEN 1 ELSE 0 END) as invalid, '
+    'SUM(CASE WHEN calculate_status = \'opening_balance\' THEN 1 ELSE 0 END) as opening, '
     'SUM(bonus1) as b1, SUM(bonus2) as b2, SUM(bonus3) as b3 '
     'FROM results WHERE run_id = ?',
     variables: [Variable.withString(runId)],
@@ -28,6 +29,7 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
 
   final totalRecords = agg.read<int>('cnt');
   final invalidCount = agg.read<int>('invalid');
+  final openingCount = agg.read<int>('opening');
   final totalCustomers = custCount.read<int>('cnt');
   final b1 = agg.read<int>('b1');
   final b2 = agg.read<int>('b2');
@@ -53,6 +55,7 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
   final stats = Map<String, dynamic>.from(calcStats ?? {});
   stats['total_records'] = totalRecords;
   stats['total_customers'] = totalCustomers;
+  stats['opening_balance'] = openingCount;
   stats['total_bonus'] = b1 + b2 + b3;
   stats['bonus_1'] = b1;
   stats['bonus_2'] = b2;
@@ -66,7 +69,7 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
   if (invalidCount > 0) {
     final rows = await db.customSelect(
       'SELECT calculate_message, COUNT(*) as cnt FROM results '
-      'WHERE run_id = ? AND calculate_status != \'valid\' AND calculate_message != \'\' '
+      'WHERE run_id = ? AND calculate_status NOT IN (\'valid\', \'opening_balance\') AND calculate_message != \'\' '
       'GROUP BY calculate_message ORDER BY cnt DESC',
       variables: [Variable.withString(runId)],
     ).get();

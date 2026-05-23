@@ -30,12 +30,20 @@ class CalculateResultBuilder {
       final nonBonusDecrease = adjustDecrease;
 
       int type;
+      String calcStatus = v.status;
+      String calcMessage = v.message;
       if (bonusDecrease > 0 || nonBonusDecrease > 0) {
         type = 0;
       } else if (bonusIncrease > 0 || nonBonusIncrease > 0) {
         type = 1;
       } else {
         type = -1;
+        if (calcStatus == 'valid') {
+          final isOpening = (data.documentDate != null && data.documentDate!.year <= 1900)
+              || (data.description?.toLowerCase().contains('dư đầu kỳ') ?? false);
+          calcStatus = isOpening ? 'opening_balance' : 'invalid';
+          calcMessage = isOpening ? 'Số dư đầu kỳ' : 'Không có phát sinh';
+        }
       }
 
       final docDate = data.documentDate;
@@ -73,8 +81,8 @@ class CalculateResultBuilder {
         paymentDueDate1: Value(pdd1),
         paymentDueDate2: Value(pdd2),
         paymentDueDate3: Value(pdd3),
-        calculateStatus: Value(v.status),
-        calculateMessage: Value(v.message),
+        calculateStatus: Value(calcStatus),
+        calculateMessage: Value(calcMessage),
       ));
     }
     return rows;

@@ -38,7 +38,7 @@ class PreviewPanel extends StatelessWidget {
           Text('Kết quả tính toán', style: Theme.of(context).textTheme.headlineSmall, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           _buildSummaryCards(context, recon),
-          if (invalidCount > 0 || !recon) ...[
+          if (invalidCount > 0 || !recon || (stats['opening_balance'] ?? 0) > 0) ...[
             const SizedBox(height: 16),
             _buildWarnings(context, recon),
           ],
@@ -104,6 +104,7 @@ class PreviewPanel extends StatelessWidget {
   }
 
   Widget _buildWarnings(BuildContext context, bool recon) {
+    final opening = stats['opening_balance'] ?? 0;
     return Card(
       color: Theme.of(context).colorScheme.errorContainer,
       child: Padding(
@@ -114,6 +115,7 @@ class PreviewPanel extends StatelessWidget {
           if (invalidCount > 0 && invalidReasons.isEmpty)
             Text('• $invalidCount records không hợp lệ'),
           ...invalidReasons.entries.map((e) => Text('• ${e.value} records: ${e.key}', style: const TextStyle(fontSize: 12))),
+          if (opening > 0) Text('• $opening dòng số dư đầu kỳ (bỏ qua)', style: const TextStyle(fontSize: 12)),
           if (!recon) const Text('• Reconciliation MISMATCH — kiểm tra lại dữ liệu'),
         ]),
       ),
