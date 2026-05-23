@@ -22,10 +22,10 @@ class ColumnGuideDialog extends StatelessWidget {
             const SizedBox(height: 8),
             const Text('File cần 3 sheet. Cột được nhận diện theo vị trí (A, B, C...), không theo tên.', style: TextStyle(color: Colors.grey)),
             const SizedBox(height: 16),
-            Expanded(child: DefaultTabController(length: 3, child: Column(children: [
-              const TabBar(tabs: [Tab(text: 'Data'), Tab(text: 'level_config'), Tab(text: 'holiday_config')]),
+            Expanded(child: DefaultTabController(length: 4, child: Column(children: [
+              const TabBar(tabs: [Tab(text: 'Data'), Tab(text: 'level_config'), Tab(text: 'holiday_config'), Tab(text: 'Định dạng ngày')]),
               const SizedBox(height: 8),
-              Expanded(child: TabBarView(children: [_dataSheet(), _levelSheet(), _holidaySheet()])),
+              Expanded(child: TabBarView(children: [_dataSheet(), _levelSheet(), _holidaySheet(), _dateFormats()])),
             ]))),
           ]),
         ),
@@ -68,6 +68,41 @@ class ColumnGuideDialog extends StatelessWidget {
   Widget _holidaySheet() => _buildTable([
     ['A', 'Ngày nghỉ', 'Ngày', 'Ngày lễ — dời hạn thưởng sang ngày kế'],
   ]);
+
+  Widget _dateFormats() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(8),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Hệ thống tự động nhận diện ngày theo thứ tự ưu tiên:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        DataTable(
+          columnSpacing: 16,
+          headingRowHeight: 36,
+          dataRowMinHeight: 32,
+          dataRowMaxHeight: 40,
+          columns: const [
+            DataColumn(label: Text('#', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Định dạng', style: TextStyle(fontWeight: FontWeight.bold))),
+            DataColumn(label: Text('Ví dụ', style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+          rows: const [
+            DataRow(cells: [DataCell(Text('1')), DataCell(Text('Excel date cell')), DataCell(Text('(tự động từ .xlsx)'))]),
+            DataRow(cells: [DataCell(Text('2')), DataCell(Text('ISO 8601')), DataCell(Text('2023-10-21T00:00:00.000'))]),
+            DataRow(cells: [DataCell(Text('3')), DataCell(Text('Excel serial number')), DataCell(Text('45220'))]),
+            DataRow(cells: [DataCell(Text('4')), DataCell(Text('dd/MM/yyyy')), DataCell(Text('21/10/2023'))]),
+            DataRow(cells: [DataCell(Text('5')), DataCell(Text('yyyy-MM-dd')), DataCell(Text('2023-10-21'))]),
+            DataRow(cells: [DataCell(Text('6')), DataCell(Text('yyyy-MM-dd HH:mm:ss')), DataCell(Text('2023-10-21 00:00:00'))]),
+            DataRow(cells: [DataCell(Text('7')), DataCell(Text('dd-MM-yyyy')), DataCell(Text('21-10-2023'))]),
+            DataRow(cells: [DataCell(Text('8')), DataCell(Text('MM/dd/yyyy')), DataCell(Text('10/21/2023'))]),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text('💡 Khuyến nghị: dùng định dạng Date trong Excel (không phải text). '
+            'Hệ thống sẽ nhận diện chính xác nhất.',
+            style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+      ]),
+    );
+  }
 
   Widget _buildTable(List<List<String>> rows) {
     return SingleChildScrollView(child: DataTable(
