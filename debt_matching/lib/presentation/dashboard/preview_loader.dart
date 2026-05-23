@@ -20,8 +20,14 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
     variables: [Variable.withString(runId)],
   ).getSingle();
 
+  final custCount = await db.customSelect(
+    'SELECT COUNT(DISTINCT customer_code) as cnt FROM main_datas WHERE run_id = ?',
+    variables: [Variable.withString(runId)],
+  ).getSingle();
+
   final totalRecords = agg.read<int>('cnt');
   final invalidCount = agg.read<int>('invalid');
+  final totalCustomers = custCount.read<int>('cnt');
   final b1 = agg.read<int>('b1');
   final b2 = agg.read<int>('b2');
   final b3 = agg.read<int>('b3');
@@ -45,6 +51,7 @@ Future<PreviewData> loadPreviewData(String runId, Map<String, dynamic>? calcStat
 
   final stats = Map<String, dynamic>.from(calcStats ?? {});
   stats['total_records'] = totalRecords;
+  stats['total_customers'] = totalCustomers;
   stats['total_bonus'] = b1 + b2 + b3;
   stats['bonus_1'] = b1;
   stats['bonus_2'] = b2;

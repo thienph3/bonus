@@ -70,6 +70,7 @@ class PreviewPanel extends StatelessWidget {
         spacing: 12, runSpacing: 12,
         children: [
           _card(context, 'Records', '${stats['total_records']}', Icons.list_alt, cardWidth),
+          _card(context, 'Khách hàng', '${stats['total_customers'] ?? 0}', Icons.people, cardWidth),
           _card(context, 'Invalid', '$invalidCount', Icons.warning, cardWidth,
               color: invalidCount > 0 ? Theme.of(context).colorScheme.error : null),
           _card(context, 'Bonus 1', _nf.format(stats['bonus_1'] ?? 0), Icons.looks_one, cardWidth),
