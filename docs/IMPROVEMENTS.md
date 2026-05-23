@@ -192,9 +192,9 @@ Giữ Material 3 nhưng điều chỉnh cho phù hợp user kế toán + data-he
 
 ---
 
-## P8 — Package Upgrades (all to latest)
+## P8 — Package Upgrades (all to latest) ✅ Done
 
-Mục tiêu: upgrade toàn bộ dependencies lên latest. Chạy full test suite sau mỗi bước.
+Completed: drift 2.33, file_picker 11, riverpod 3, intl 0.20, sqlite3_flutter_libs removed, build_runner 2.15.
 
 ### Bước 1: Safe upgrades (no breaking changes)
 
