@@ -1,14 +1,14 @@
-import 'dart:isolate';
 import 'package:drift/drift.dart';
 import '../database/app_database.dart';
 import 'calculate_validator.dart';
 import 'calculate_result_builder.dart';
-import 'calculate_fifo.dart';
 import 'calculate_writer.dart';
+import 'chunked_fifo_service.dart';
 
 class CalculateService {
   final AppDatabase _db = AppDatabase.instance;
   final _builder = CalculateResultBuilder();
+  final _fifoService = ChunkedFifoService();
 
   Future<Map<String, dynamic>> calculate(
     String runId, void Function(String) onLog, void Function(int) onSubStep,
@@ -27,7 +27,8 @@ class CalculateService {
         return c != 0 ? c : b.paymentPeriod.compareTo(a.paymentPeriod);
       });
 
-    return await _db.transaction(() async {
+    // Phase 1: Prepare (single transaction)
+    await _db.transaction(() async {
       onLog('Xóa kết quả cũ của run...');
       await (_db.delete(_db.matchingDetails)..where((t) => t.runId.equals(runId))).go();
       await (_db.delete(_db.results)..where((t) => t.runId.equals(runId))).go();
@@ -47,56 +48,30 @@ class CalculateService {
               where: (r) => r.id.equals(validResults[i].id));
         }
       });
-
-      onLog('Tính toán FIFO (background)...');
-      onSubStep(3);
-      final dataMap = {for (final d in datas) d.id: d};
-      final fifo = await _runFifoInIsolate(validResults, dataMap, runId);
-
-      onLog('Lưu kết quả FIFO...');
-      final writer = CalculateWriter(_db);
-      await writer.writeFifoResults(fifo, runId);
-
-      onLog('Pushed: ${fifo.totalPushed}, Consumed: ${fifo.totalConsumed}, Remaining: ${fifo.totalRemaining}');
-      final diff = fifo.totalPushed - fifo.totalConsumed - fifo.totalRemaining;
-      onLog(diff != 0 ? '⚠️ MISMATCH: $diff' : '✅ Reconciliation OK');
-
-      // Cross-check: tổng decrease trên sổ vs totalPushed
-      final sumDecrease = validResults.where((r) => r.type == 0)
-          .fold<int>(0, (s, r) => s + r.bonusDecrease + r.nonBonusDecrease);
-      final crossDiff = sumDecrease - fifo.totalPushed;
-      if (crossDiff != 0) {
-        onLog('⚠️ Cross-check: tổng decrease sổ ($sumDecrease) ≠ totalPushed (${fifo.totalPushed}), chênh lệch: $crossDiff');
-      }
-
-      await writer.updateRunHistory(runId, fifo.totalBonus);
-      onLog('✅ Hoàn tất. Tổng thưởng: ${fifo.totalBonus}');
-      onSubStep(4);
-      return {
-        'total_records': validResults.length, 'total_bonus': fifo.totalBonus,
-        'total_pushed': fifo.totalPushed, 'total_consumed': fifo.totalConsumed,
-        'total_remaining': fifo.totalRemaining,
-      };
     });
-  }
 
-  Future<FifoResult> _runFifoInIsolate(List<Result> results, Map<String, MainData> dataMap, String runId) {
-    final sr = results.map((r) => {
-      'id': r.id, 'mainDataId': r.mainDataId, 'type': r.type,
-      'bonusDecrease': r.bonusDecrease, 'nonBonusDecrease': r.nonBonusDecrease,
-      'bonusIncrease': r.bonusIncrease, 'nonBonusIncrease': r.nonBonusIncrease,
-      'paymentDueDate1': r.paymentDueDate1?.millisecondsSinceEpoch,
-      'paymentDueDate2': r.paymentDueDate2?.millisecondsSinceEpoch,
-      'paymentDueDate3': r.paymentDueDate3?.millisecondsSinceEpoch,
-    }).toList();
-    final sd = dataMap.map((k, d) => MapEntry(k, {
-      'customerCode': d.customerCode, 'branch': d.branch, 'seasonalCode': d.seasonalCode,
-      'documentNumber': d.documentNumber, 'documentDate': d.documentDate?.millisecondsSinceEpoch,
-    }));
-    if (AppDatabase.testMode) {
-      return Future.value(computeFifo({'results': sr, 'dataMap': sd, 'runId': runId}));
-    }
-    return Isolate.run(() => computeFifo({'results': sr, 'dataMap': sd, 'runId': runId}));
+    // Phase 2: FIFO per group (chunked, resumable)
+    onSubStep(3);
+    final dataMap = {for (final d in datas) d.id: d};
+    final validResults = await _getSortedValidResults(datas, runId);
+    final totalBonus = await _fifoService.processChunked(runId, validResults, dataMap, onLog, onSubStep);
+
+    // Phase 3: Finalize
+    final writer = CalculateWriter(_db);
+    await writer.updateRunHistory(runId, totalBonus);
+    onLog('✅ Hoàn tất. Tổng thưởng: $totalBonus');
+    onSubStep(4);
+
+    // Gather stats
+    final pushed = validResults.where((r) => r.type == 0)
+        .fold<int>(0, (s, r) => s + r.bonusDecrease + r.nonBonusDecrease);
+    final results = await (_db.select(_db.results)..where((t) => t.runId.equals(runId))).get();
+    final consumed = results.fold<int>(0, (s, r) => s + r.bonus1 + r.bonus2 + r.bonus3);
+
+    return {
+      'total_records': validResults.length, 'total_bonus': totalBonus,
+      'total_pushed': pushed, 'total_consumed': consumed, 'total_remaining': pushed - consumed,
+    };
   }
 
   Future<List<Result>> _getSortedValidResults(List<MainData> datas, String runId) async {

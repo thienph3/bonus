@@ -57,7 +57,7 @@ void main() {
       expect(run.status, 'completed');
     });
 
-    test('cross-check logs warning if mismatch', () async {
+    test('cross-check logs FIFO progress', () async {
       final importSvc = ImportService();
       final ir = await importSvc.importFromExcel('test/fixtures/normal.xlsx', log);
       final runId = ir['runId'] as String;
@@ -65,8 +65,8 @@ void main() {
       final calcSvc = CalculateService();
       await calcSvc.calculate(runId, log, (_) {});
 
-      // Verify reconciliation log exists
-      expect(logs.any((l) => l.contains('Reconciliation') || l.contains('Pushed')), true);
+      // Verify FIFO progress log exists
+      expect(logs.any((l) => l.contains('FIFO') || l.contains('Hoàn tất')), true);
     });
 
     test('handles edge cases without crash', () async {

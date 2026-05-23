@@ -27,7 +27,6 @@ class AppDatabase extends _$AppDatabase {
   @visibleForTesting
   static set instance(AppDatabase db) => _instance = db;
   /// When true, services skip Isolate.run() and execute synchronously.
-  @visibleForTesting
   static bool testMode = false;
 
   @override
