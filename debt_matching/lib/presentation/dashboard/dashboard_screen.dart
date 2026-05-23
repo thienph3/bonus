@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:path/path.dart' as p;
 import '../../core/theme/theme_provider.dart';
 import '../../core/utils/error_utils.dart';
 import '../../data/database/app_database.dart';
@@ -67,7 +69,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (result == null) return;
     setState(() { _state = AppState.processing; _logs.clear(); _subStep = 0; });
     try {
-      final ir = await _import.importFromExcel(result.files.single.path!, _log);
+      final path = result.files.single.path!;
+      final ir = await _import.importFromExcel(path, _log);
       final runId = ir['runId'] as String;
       await _validation.validate(runId, _log);
       final stats = await _calc.calculate(runId, _log, _onSubStep);
@@ -75,15 +78,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _preview = await loadPreviewData(runId, stats);
       await _loadRuns();
       setState(() => _state = AppState.preview);
-    } catch (e) {
-      setState(() { _state = AppState.error; _errorMsg = friendlyError(e); });
-    }
+    } catch (e) { setState(() { _state = AppState.error; _errorMsg = friendlyError(e); }); }
   }
 
   Future<void> _selectRun(String runId) async {
     _currentRunId = runId;
     final run = _runs.firstWhere((r) => r.id == runId);
     if (run.status == 'completed') {
+      setState(() => _state = AppState.processing);
       _preview = await loadPreviewData(runId, null);
       setState(() => _state = AppState.preview);
     } else {
@@ -112,6 +114,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _state = AppState.initial);
   }
 
+  Future<void> _downloadTemplate() async {
+    final savePath = await FilePicker.platform.saveFile(
+        dialogTitle: 'Lưu file mẫu', fileName: 'template.xlsx',
+        type: FileType.custom, allowedExtensions: ['xlsx']);
+    if (savePath == null) return;
+    final src = File(p.join(p.dirname(Platform.resolvedExecutable), 'data', 'flutter_assets', 'assets', 'template.xlsx'));
+    if (await src.exists()) { await src.copy(savePath); _log('✅ Đã lưu file mẫu: $savePath'); }
+    else { _log('⚠️ Không tìm thấy file mẫu.'); }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -121,16 +133,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ]),
       body: Column(children: [
         RunSelector(runs: _runs, selectedRunId: _currentRunId, onSelect: _selectRun, onDelete: _deleteRun),
-        Expanded(child: Row(children: [
-          Expanded(flex: 3, child: _buildMain()),
-          Expanded(flex: 2, child: ConsolePanel(logs: _logs, scrollController: _scroll)),
-        ])),
+        Expanded(child: _buildMain()),
+        ConsolePanel(logs: _logs, scrollController: _scroll),
       ]),
     );
   }
 
   Widget _buildMain() => switch (_state) {
-    AppState.initial => buildInitialView(context, _processFile),
+    AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
     AppState.processing => buildProcessingView(_subStep),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults,
         invalidCount: _preview.invalidCount, onExport: _exportRun, onReset: _processFile),

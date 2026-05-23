@@ -7,10 +7,47 @@ Uint8List? buildExcelBytes(Map<String, dynamic> input) {
   final matchings = input['matchings'] as List<Map<String, dynamic>>;
 
   final excel = Excel.createExcel();
+  _writeSummary(excel, results);
   _writeResults(excel, results);
   _writeMatchings(excel, matchings);
   if (excel.tables.containsKey('Sheet1')) excel.delete('Sheet1');
   return Uint8List.fromList(excel.save() ?? []);
+}
+
+void _writeSummary(Excel excel, List<Map<String, dynamic>> results) {
+  final sheet = excel['Summary'];
+  final headers = ['customer_code', 'customer_name', 'records', 'bonus_1', 'bonus_2', 'bonus_3', 'total_bonus'];
+  for (int c = 0; c < headers.length; c++) {
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0)).value = TextCellValue(headers[c]);
+  }
+  // Group by customer_code
+  final grouped = <String, Map<String, dynamic>>{};
+  for (final r in results) {
+    final code = (r['customer_code'] ?? '') as String;
+    final g = grouped.putIfAbsent(code, () => {'name': r['customer_name'] ?? '', 'cnt': 0, 'b1': 0, 'b2': 0, 'b3': 0});
+    g['cnt'] = (g['cnt'] as int) + 1;
+    g['b1'] = (g['b1'] as int) + ((r['bonus_1'] ?? 0) as int);
+    g['b2'] = (g['b2'] as int) + ((r['bonus_2'] ?? 0) as int);
+    g['b3'] = (g['b3'] as int) + ((r['bonus_3'] ?? 0) as int);
+  }
+  final sorted = grouped.entries.toList()..sort((a, b) {
+    final ta = (a.value['b1'] as int) + (a.value['b2'] as int) + (a.value['b3'] as int);
+    final tb = (b.value['b1'] as int) + (b.value['b2'] as int) + (b.value['b3'] as int);
+    return tb.compareTo(ta);
+  });
+  for (int i = 0; i < sorted.length; i++) {
+    final e = sorted[i];
+    final g = e.value;
+    final total = (g['b1'] as int) + (g['b2'] as int) + (g['b3'] as int);
+    int c = 0;
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = TextCellValue(e.key);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = TextCellValue(g['name'] as String);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['cnt'] as int);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['b1'] as int);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['b2'] as int);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(g['b3'] as int);
+    sheet.cell(CellIndex.indexByColumnRow(columnIndex: c++, rowIndex: i + 1)).value = IntCellValue(total);
+  }
 }
 
 void _writeResults(Excel excel, List<Map<String, dynamic>> results) {

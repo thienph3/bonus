@@ -4,11 +4,11 @@ import 'package:intl/intl.dart';
 int? parseNumber(dynamic value) {
   if (value == null) return null;
   if (value is int) return value;
-  if (value is double) return value.toInt();
+  if (value is double) return value.round();
   final str = value.toString().trim();
   if (str.isEmpty) return null;
   final d = double.tryParse(str);
-  if (d != null) return d.toInt();
+  if (d != null) return d.round();
   return null;
 }
 

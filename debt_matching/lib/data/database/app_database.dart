@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'tables.dart';
@@ -17,6 +18,7 @@ part 'app_database.g.dart';
 ])
 class AppDatabase extends _$AppDatabase {
   AppDatabase._() : super(_openConnection());
+  AppDatabase.forTesting(super.e);
 
   static AppDatabase? _instance;
   static AppDatabase get instance => _instance ??= AppDatabase._();
@@ -52,3 +54,6 @@ LazyDatabase _openConnection() {
     return NativeDatabase.createInBackground(file);
   });
 }
+
+/// Riverpod provider for DI / testing
+final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase.instance);

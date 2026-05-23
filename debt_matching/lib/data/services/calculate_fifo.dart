@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
@@ -35,7 +36,7 @@ FifoResult computeFifo(Map<String, dynamic> input) {
     final docNum = data['documentNumber'] as String?;
     if (docNum == null || docNum.isEmpty) continue;
 
-    final beforeStr = stack.toString();
+    final beforeStr = jsonEncode(stack);
     int b1 = 0, b2 = 0, b3 = 0;
     final type = r['type'] as int;
     final bonusDec = r['bonusDecrease'] as int;
@@ -79,7 +80,7 @@ FifoResult computeFifo(Map<String, dynamic> input) {
 
     totalBonus += b1 + b2 + b3;
     bonusUpdates.add({'id': r['id'], 'b1': b1, 'b2': b2, 'b3': b3,
-      'before': beforeStr, 'after': stack.toString()});
+      'before': beforeStr, 'after': jsonEncode(stack)});
   }
 
   final totalRemaining = stack.fold<int>(0, (s, item) => s + (item['amount'] as int));

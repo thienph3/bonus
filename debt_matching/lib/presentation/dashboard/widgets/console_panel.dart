@@ -1,42 +1,54 @@
 import 'package:flutter/material.dart';
 
-class ConsolePanel extends StatelessWidget {
+class ConsolePanel extends StatefulWidget {
   final List<String> logs;
   final ScrollController scrollController;
 
-  const ConsolePanel({
-    super.key,
-    required this.logs,
-    required this.scrollController,
-  });
+  const ConsolePanel({super.key, required this.logs, required this.scrollController});
+
+  @override
+  State<ConsolePanel> createState() => _ConsolePanelState();
+}
+
+class _ConsolePanelState extends State<ConsolePanel> {
+  bool _expanded = false;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(left: BorderSide(color: Theme.of(context).dividerColor)),
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      _buildBar(),
+      if (_expanded) SizedBox(height: 150, child: _buildLogList()),
+    ]);
+  }
+
+  Widget _buildBar() {
+    return GestureDetector(
+      onTap: () => setState(() => _expanded = !_expanded),
+      child: Container(
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).dividerColor))),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(children: [
+          Icon(_expanded ? Icons.expand_more : Icons.expand_less, size: 16),
+          const SizedBox(width: 8),
+          Text('Console (${widget.logs.length})', style: Theme.of(context).textTheme.labelSmall),
+          const Spacer(),
+          if (widget.logs.isNotEmpty) Flexible(
+            child: Text(widget.logs.last, style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                overflow: TextOverflow.ellipsis),
+          ),
+        ]),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text('Console', style: Theme.of(context).textTheme.titleSmall),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
-              controller: scrollController,
-              padding: const EdgeInsets.all(8),
-              itemCount: logs.length,
-              itemBuilder: (_, i) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Text(logs[i],
-                    style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
-              ),
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _buildLogList() {
+    return ListView.builder(
+      controller: widget.scrollController,
+      padding: const EdgeInsets.all(8),
+      itemCount: widget.logs.length,
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Text(widget.logs[i], style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
       ),
     );
   }

@@ -34,18 +34,18 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ## P3 — Backlog (~6 hours)
 
-| # | Fix | Where | Effort |
+| # | Fix | Where | Status |
 |---|-----|-------|--------|
-| 13 | Console → collapsible bottom panel | `dashboard_screen.dart` | 1-2 hrs |
-| 14 | Aggregate queries (COUNT, LIMIT 20) thay load all | `preview_loader.dart` | 30 min |
-| 15 | Thêm sheet "Summary" group by customerCode | `export_builder.dart` | 1 hr |
-| 16 | `jsonEncode(stack)` thay `stack.toString()` | `calculate_fifo.dart` | 10 min |
-| 17 | Nút "Tải template" ở initial state | `dashboard_state_views.dart` | 30 min |
+| 13 | Console → collapsible bottom panel | `console_panel.dart` | ✅ Done |
+| 14 | Aggregate queries (COUNT, LIMIT 20) thay load all | `preview_loader.dart` | ✅ Done |
+| 15 | Thêm sheet "Summary" group by customerCode | `export_builder.dart` | ✅ Done |
+| 16 | `jsonEncode(stack)` thay `stack.toString()` | `calculate_fifo.dart` | ✅ Done |
+| 17 | Nút "Tải template" ở initial state | `dashboard_state_views.dart` | ✅ Done |
 | 18 | `Theme.of(context).colorScheme.errorContainer` thay hardcoded | `preview_panel.dart` | ✅ Done |
-| 19 | `.toInt()` → `.round()` | `parse_utils.dart` | 2 min |
-| 20 | `LayoutBuilder` + adaptive card width | `preview_panel.dart` | 20 min |
-| 21 | Show loading khi `_selectRun` | `dashboard_screen.dart` | 5 min |
-| 22 | Riverpod Provider cho DB, inject vào services | All services | 1-2 hrs |
+| 19 | `.toInt()` → `.round()` | `parse_utils.dart` | ✅ Done |
+| 20 | `LayoutBuilder` + adaptive card width | `preview_panel.dart` | ✅ Done |
+| 21 | Show loading khi `_selectRun` | `dashboard_screen.dart` | ✅ Done |
+| 22 | Riverpod Provider cho DB, inject vào services | `app_database.dart` | ✅ Done |
 
 ---
 

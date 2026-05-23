@@ -51,25 +51,28 @@ class PreviewPanel extends StatelessWidget {
   }
 
   Widget _buildSummaryCards(BuildContext context, bool recon) {
-    return Wrap(
-      spacing: 12, runSpacing: 12,
-      children: [
-        _card(context, 'Records', '${stats['total_records']}', Icons.list_alt),
-        _card(context, 'Invalid', '$invalidCount', Icons.warning,
-            color: invalidCount > 0 ? Theme.of(context).colorScheme.error : null),
-        _card(context, 'Bonus 1', _nf.format(stats['bonus_1'] ?? 0), Icons.looks_one),
-        _card(context, 'Bonus 2', _nf.format(stats['bonus_2'] ?? 0), Icons.looks_two),
-        _card(context, 'Bonus 3', _nf.format(stats['bonus_3'] ?? 0), Icons.looks_3),
-        _card(context, 'Tổng thưởng', _nf.format(stats['total_bonus']), Icons.monetization_on),
-        _card(context, 'Reconciliation', recon ? 'OK' : 'MISMATCH', Icons.check_circle,
-            color: recon ? Colors.green : Theme.of(context).colorScheme.error),
-      ],
-    );
+    return LayoutBuilder(builder: (context, constraints) {
+      final cardWidth = ((constraints.maxWidth - 36) / 4).clamp(120.0, 180.0);
+      return Wrap(
+        spacing: 12, runSpacing: 12,
+        children: [
+          _card(context, 'Records', '${stats['total_records']}', Icons.list_alt, cardWidth),
+          _card(context, 'Invalid', '$invalidCount', Icons.warning, cardWidth,
+              color: invalidCount > 0 ? Theme.of(context).colorScheme.error : null),
+          _card(context, 'Bonus 1', _nf.format(stats['bonus_1'] ?? 0), Icons.looks_one, cardWidth),
+          _card(context, 'Bonus 2', _nf.format(stats['bonus_2'] ?? 0), Icons.looks_two, cardWidth),
+          _card(context, 'Bonus 3', _nf.format(stats['bonus_3'] ?? 0), Icons.looks_3, cardWidth),
+          _card(context, 'Tổng thưởng', _nf.format(stats['total_bonus']), Icons.monetization_on, cardWidth),
+          _card(context, 'Reconciliation', recon ? 'OK' : 'MISMATCH', Icons.check_circle, cardWidth,
+              color: recon ? Colors.green : Theme.of(context).colorScheme.error),
+        ],
+      );
+    });
   }
 
-  Widget _card(BuildContext context, String label, String value, IconData icon, {Color? color}) {
+  Widget _card(BuildContext context, String label, String value, IconData icon, double width, {Color? color}) {
     return SizedBox(
-      width: 150,
+      width: width,
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(12),

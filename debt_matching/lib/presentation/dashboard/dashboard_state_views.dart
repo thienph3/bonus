@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Widget buildInitialView(BuildContext context, VoidCallback onPickFile) {
+Widget buildInitialView(BuildContext context, VoidCallback onPickFile, {VoidCallback? onDownloadTemplate}) {
   return Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
     Icon(Icons.upload_file, size: 64, color: Theme.of(context).colorScheme.primary),
     const SizedBox(height: 16),
@@ -9,6 +9,11 @@ Widget buildInitialView(BuildContext context, VoidCallback onPickFile) {
     const SizedBox(height: 12),
     Text('File cần 3 sheet: Data, level_config, holiday_config',
         style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+    if (onDownloadTemplate != null) ...[
+      const SizedBox(height: 16),
+      OutlinedButton.icon(onPressed: onDownloadTemplate, icon: const Icon(Icons.description),
+          label: const Text('Tải file mẫu')),
+    ],
   ]));
 }
 
