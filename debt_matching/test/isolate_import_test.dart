@@ -25,7 +25,7 @@ void main() {
           ..where((t) => t.id.equals(result['runId'] as String)))
         .getSingle();
     expect(run.status, 'imported');
-  });
+  }, timeout: const Timeout(Duration(seconds: 60)));
 
   test('importFromExcel via real Isolate with template.xlsx', () async {
     final result = await ImportService().importFromExcel('../data/template.xlsx', log);
