@@ -14,9 +14,9 @@ import 'widgets/console_panel.dart';
 import 'widgets/preview_panel.dart';
 import 'widgets/run_selector.dart';
 import 'widgets/bonus_rates_dialog.dart';
+import 'widgets/compare_dialog.dart';
 import 'dashboard_state_views.dart';
 import 'preview_loader.dart';
-
 enum AppState { initial, processing, preview, exported, error }
 
 class DashboardScreen extends StatefulWidget {
@@ -117,14 +117,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _downloadTemplate() => downloadTemplate(_log);
+  void _showCompare() => showDialog(context: context, builder: (_) => CompareDialog(runs: _runs, currentRunId: _currentRunId!));
 
   @override
   Widget build(BuildContext context) {
     return CallbackShortcuts(
-      bindings: {
-        const SingleActivator(LogicalKeyboardKey.keyO, control: true): _processFile,
-        const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun,
-      },
+      bindings: {const SingleActivator(LogicalKeyboardKey.keyO, control: true): _processFile,
+        const SingleActivator(LogicalKeyboardKey.keyE, control: true): _exportRun},
       child: Focus(autofocus: true, child: Scaffold(
         appBar: AppBar(title: const Text('Debt Matching'), centerTitle: true, actions: [
           IconButton(icon: Icon(widget.themeProvider.mode == ThemeMode.light ? Icons.dark_mode : Icons.light_mode),
@@ -143,7 +142,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     AppState.initial => buildInitialView(context, _processFile, onDownloadTemplate: _downloadTemplate),
     AppState.processing => buildProcessingView(_subStep),
     AppState.preview => PreviewPanel(stats: _preview.stats, topResults: _preview.topResults,
-        invalidCount: _preview.invalidCount, onExport: _exportRun, onReset: _processFile),
+        invalidCount: _preview.invalidCount, onExport: _exportRun, onReset: _processFile,
+        onCompare: _runs.where((r) => r.status == 'completed').length > 1 ? _showCompare : null),
     AppState.exported => buildExportedView(_exportedPath, () => setState(() => _state = AppState.preview)),
     AppState.error => buildErrorView(_errorMsg, () => setState(() => _state = AppState.initial)),
   };
