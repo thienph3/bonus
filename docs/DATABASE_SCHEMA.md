@@ -1,8 +1,9 @@
 # DATABASE SCHEMA
 
 SQLite database (`debt_matching.db`), sử dụng Drift ORM.
-6 bảng, UUID string primary key. Schema version 2.
+6 bảng, UUID string primary key. Schema version 3.
 Mọi data table có `runId` để phân biệt kỳ.
+Indexes trên `run_id` cho tất cả data tables (migration v3).
 
 ---
 

@@ -2,10 +2,27 @@
 
 ## Tổng quan
 
-File: `calculate_service.dart` → `calculate_validator.dart` + `calculate_result_builder.dart` → `calculate_fifo.dart`
+```
+import_service.dart → pre_validation_service.dart → calculate_service.dart
+                                                      ├── calculate_validator.dart
+                                                      ├── calculate_result_builder.dart
+                                                      ├── calculate_fifo.dart
+                                                      └── calculate_writer.dart
+```
 
 Chạy trong `db.transaction()`. FIFO computation chạy trong `Isolate.run()`.
 Chỉ xử lý data của 1 run (filter by `runId`).
+
+---
+
+## Bước 0: Pre-validation (sau import, trước calculate)
+
+File: `pre_validation_service.dart` → `validate()`
+
+Kiểm tra dữ liệu đã import, log warnings:
+- Đếm dòng thiếu documentNumber, paymentPeriod, seasonalCode, salesMethod
+- Detect duplicate documentNumber trong cùng group (customer|branch|seasonal)
+- Không block — chỉ warning, calculate vẫn chạy
 
 ---
 
@@ -24,6 +41,7 @@ Mỗi main_data record được validate:
 | sales_method rỗng | "Missing sales_method" |
 
 Nếu valid → tìm level phù hợp (case-insensitive, payment_period DESC → lấy level đầu tiên match).
+Nếu valid + documentNumber trùng trong group → append warning vào message (không block).
 
 ---
 
@@ -88,9 +106,10 @@ Sau FIFO: verify totalPushed == totalConsumed + totalRemaining.
 
 ---
 
-## Bước 5: Write results
+## Bước 5: Write results + Cross-check
 
-File: `calculate_writer.dart`
+File: `calculate_writer.dart` + `calculate_service.dart`
 
-Batch update bonus_1/2/3 + batch insert matching_details, mỗi 100 rows.
+Batch update bonus_1/2/3 + batch insert matching_details (pre-grouped by resultId).
+Cross-check: `sum(bonusDecrease + nonBonusDecrease)` of type==0 results vs `totalPushed`. Log warning if mismatch.
 Update RunHistory status → 'completed'.

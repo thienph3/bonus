@@ -1,12 +1,12 @@
 # REVIEW — Debt Matching Service
 
-Review date: 2026-05-23
+Review date: 2026-05-23 (updated after P1-P3 fixes)
 
 ---
 
 ## Summary
 
-Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. Feature-complete theo spec, production-ready cho scope hiện tại (internal, single-user, <10k rows).
+Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn trên TK 131 bằng đối trừ FIFO 3-tier. Feature-complete, P1-P3 improvements applied. Production-ready cho internal use.
 
 ---
 
@@ -14,40 +14,32 @@ Desktop tool (Flutter/Windows) tính chiết khấu thanh toán đúng hạn tr�
 
 | # | Strength |
 |---|----------|
-| 1 | FIFO đối trừ đúng chuẩn VAS, reconciliation check tự động |
+| 1 | FIFO đối trừ đúng chuẩn VAS, reconciliation + cross-check tự động |
 | 2 | Matching Detail audit trail — từng cặp đối trừ |
 | 3 | Heavy computation trong Isolate — UI không jank |
-| 4 | Batch writes + transaction wrapping |
+| 4 | Batch writes + transaction wrapping + DB indexes |
 | 5 | Multi-period isolation (runId) |
-| 6 | Single-screen state machine, console real-time feedback |
-| 7 | Clean separation: data / presentation / core |
+| 6 | Pre-validation: duplicate detection, missing field warnings |
+| 7 | Collapsible console, progress steps, responsive cards |
+| 8 | Export 3 sheets: Summary (by customer) + Result + Matching Detail |
+| 9 | Clean separation: data / presentation / core, all files ≤150 LOC |
+| 10 | DI-ready (Riverpod Provider for DB) |
 
 ---
 
-## Issues Summary
+## Remaining Issues
 
-28 issues found. Chi tiết fix → [IMPROVEMENTS.md](IMPROVEMENTS.md)
+| # | Issue | Status |
+|---|-------|--------|
+| 3 | Decrease chỉ push 1 loại (bonus OR non_bonus) | ⏸️ Needs business confirmation |
+| 5 | Không skip cuối tuần trong holiday adjustment | ⏸️ Needs recheck |
+| 29 | Chunked FIFO per group (for 100k+ rows) | 📋 Designed, not implemented |
 
-| Severity | Count | Key items |
-|----------|-------|-----------|
-| High | 4 | O(n²) writer, decrease mất non_bonus, số tiền không format, thiếu pre-validation |
-| Medium | 12 | No weekend skip, no DB index, no cross-check tổng, no progress UI |
-| Low | 12 | Truncate vs round, dark mode colors, responsive cards, etc. |
-
-### Top risks
-
-| Risk | Likelihood | Impact |
-|------|-----------|--------|
-| Sai bonus do mất non_bonus decrease (B2) | Medium | High |
-| Performance timeout dataset lớn (P1) | High | Medium |
-| User import file sai không biết (G1) | High | Medium |
-| Data corruption khi delete crash (P2) | Low | High |
+Chi tiết → [IMPROVEMENTS.md](IMPROVEMENTS.md)
 
 ---
 
 ## Business Rules (accepted)
-
-Các behavior đã confirm là intentional:
 
 | # | Rule |
 |---|------|
@@ -60,15 +52,25 @@ Các behavior đã confirm là intentional:
 
 ## Fix History
 
-Các vấn đề đã được giải quyết trong quá trình phát triển:
-
-| Vấn đề ban đầu | Giải pháp |
-|-----------------|-----------|
-| FIFO/Import insert từng row | Batch 100 rows |
-| readAsBytesSync block UI | Isolate.run() cho Excel parse, FIFO, Excel build |
-| Holiday DateTime không normalize | Normalize trong parseDate + changeDateByHolidays |
-| Không có transaction | db.transaction() wrapper |
-| Không có audit trail | Bảng RunHistories + MatchingDetails |
-| Không validate tổng | Reconciliation check |
-| Flow 3 bước thừa | Gộp: Chọn file → Preview → Export |
-| Không hỗ trợ nhiều kỳ | runId trên mọi record, run selector |
+| Vấn đề | Giải pháp |
+|--------|-----------|
+| O(n²) writer | Pre-group matchingDetails by resultId |
+| Số tiền không format | NumberFormat('#,###') |
+| deleteRun không atomic | Transaction wrap |
+| Không có DB index | Migration v3: indexes on run_id |
+| Không có pre-validation | PreValidationService: missing fields + duplicates |
+| Không có progress UI | onSubStep callback + LinearProgressIndicator |
+| Error hiển thị raw exception | friendlyError() → Vietnamese messages |
+| Không cross-check tổng sổ | Compare sum(decrease) vs totalPushed |
+| Import skip rows silently | Count + log skipped rows |
+| Không detect trùng chứng từ | Duplicate detection in validateAndMap |
+| Console chiếm 40% width | Collapsible bottom panel |
+| Load all records cho preview | SQL aggregate + LIMIT 20 |
+| Không có Summary sheet | Export grouped by customerCode |
+| Stack state dùng toString() | jsonEncode |
+| Không có template download | "Tải file mẫu" button |
+| Dark mode hardcoded colors | Theme.colorScheme |
+| parseNumber truncate | .round() |
+| Cards fixed width | LayoutBuilder responsive |
+| Không loading khi switch run | setState processing |
+| DB không testable | Riverpod Provider + forTesting constructor |

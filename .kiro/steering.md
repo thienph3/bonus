@@ -38,7 +38,7 @@ lib/
 - **Material 3** with `colorSchemeSeed: Colors.blue`, `useMaterial3: true`
 - **Single-screen** layout — no navigation, state machine drives content
 - **AppState enum** controls what's shown: `initial → processing → preview → exported → error`
-- **Layout**: main panel (flex 3) + console panel (flex 2), run selector on top
+- **Layout**: full-width main panel, collapsible console at bottom, run selector on top
 - **Buttons**: `FilledButton` for primary action, `OutlinedButton` for secondary
 - **Numbers**: always format with `NumberFormat('#,###')` from `intl`
 - **Language**: UI text in Vietnamese, code/comments in English

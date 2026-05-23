@@ -23,16 +23,19 @@ Hệ thống gom toàn bộ khoản thanh toán vào stack FIFO theo nhóm (khá
 
 1. **Chọn file Excel** → App tự động import + calculate
 2. **Preview kết quả** → Xem summary, warnings, top records có bonus, reconciliation
-3. **Xuất kết quả** → Export Excel gồm 2 sheet: Result + Matching Detail
+3. **Xuất kết quả** → Export Excel gồm 3 sheet: Summary + Result + Matching Detail
 
 Hỗ trợ **nhiều kỳ**: mỗi lần import tạo 1 kỳ mới, data cũ được giữ lại. Chọn kỳ cũ từ dropdown để xem lại hoặc export lại.
 
 ## Tính năng
 
 - Đối trừ FIFO với chi tiết matching (khoản nào match khoản nào)
-- Reconciliation check (tổng pushed = consumed + remaining)
+- Pre-validation: kiểm tra dữ liệu trước khi tính (thiếu field, trùng chứng từ)
+- Reconciliation check (tổng pushed = consumed + remaining) + cross-check tổng sổ
 - Multi-period: lưu lịch sử các kỳ, xem/export/xóa từng kỳ
+- Export: Summary theo khách hàng + Result + Matching Detail
 - Heavy computation chạy trong Isolate (UI không jank)
+- Collapsible console với real-time log
 - Light/Dark theme
 - Audit trail (RunHistories)
 
