@@ -6,14 +6,14 @@ Sorted by priority (impact × likelihood / effort). Issue context → [REVIEW.md
 
 ## P1 — Fix Now (~45 min)
 
-| # | Fix | Where | Effort |
+| # | Fix | Where | Status |
 |---|-----|-------|--------|
-| 1 | `NumberFormat('#,###')` cho số tiền | `preview_panel.dart` | 15 min |
-| 2 | Pre-group matchingDetails by resultId (fix O(n²)) | `calculate_writer.dart` | 10 min |
-| 3 | Push 2 items khi cả bonusDec & nonBonusDec > 0 | `calculate_fifo.dart` | 15 min |
-| 4 | Wrap `deleteRun` trong `_db.transaction()` | `export_service.dart` | 2 min |
+| 1 | `NumberFormat('#,###')` cho số tiền | `preview_panel.dart` | ✅ Done |
+| 2 | Pre-group matchingDetails by resultId (fix O(n²)) | `calculate_writer.dart` | ✅ Done |
+| 3 | Push 2 items khi cả bonusDec & nonBonusDec > 0 | `calculate_fifo.dart` | ⏸️ Needs confirmation |
+| 4 | Wrap `deleteRun` trong `_db.transaction()` | `export_service.dart` | ✅ Done |
 
-> **#3 Note:** Confirm với nghiệp vụ trước — có thể là intentional rule.
+> **#3 Note:** Cần confirm với nghiệp vụ — có thể là intentional rule (chỉ push 1 loại).
 
 ---
 

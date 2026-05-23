@@ -51,11 +51,13 @@ class ExportService {
 
   /// Delete a run and all its data
   Future<void> deleteRun(String runId) async {
-    await (_db.delete(_db.matchingDetails)..where((t) => t.runId.equals(runId))).go();
-    await (_db.delete(_db.results)..where((t) => t.runId.equals(runId))).go();
-    await (_db.delete(_db.mainDatas)..where((t) => t.runId.equals(runId))).go();
-    await (_db.delete(_db.levelConfigs)..where((t) => t.runId.equals(runId))).go();
-    await (_db.delete(_db.holidayConfigs)..where((t) => t.runId.equals(runId))).go();
-    await (_db.delete(_db.runHistories)..where((t) => t.id.equals(runId))).go();
+    await _db.transaction(() async {
+      await (_db.delete(_db.matchingDetails)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.results)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.mainDatas)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.levelConfigs)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.holidayConfigs)..where((t) => t.runId.equals(runId))).go();
+      await (_db.delete(_db.runHistories)..where((t) => t.id.equals(runId))).go();
+    });
   }
 }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+final _nf = NumberFormat('#,###');
 
 class PreviewPanel extends StatelessWidget {
   final Map<String, dynamic> stats;
@@ -53,10 +56,10 @@ class PreviewPanel extends StatelessWidget {
       children: [
         _card(context, 'Records', '${stats['total_records']}', Icons.list_alt),
         _card(context, 'Invalid', '$invalidCount', Icons.warning, color: invalidCount > 0 ? Colors.orange : null),
-        _card(context, 'Bonus 1', '${stats['bonus_1'] ?? 0}', Icons.looks_one),
-        _card(context, 'Bonus 2', '${stats['bonus_2'] ?? 0}', Icons.looks_two),
-        _card(context, 'Bonus 3', '${stats['bonus_3'] ?? 0}', Icons.looks_3),
-        _card(context, 'Tổng thưởng', '${stats['total_bonus']}', Icons.monetization_on),
+        _card(context, 'Bonus 1', _nf.format(stats['bonus_1'] ?? 0), Icons.looks_one),
+        _card(context, 'Bonus 2', _nf.format(stats['bonus_2'] ?? 0), Icons.looks_two),
+        _card(context, 'Bonus 3', _nf.format(stats['bonus_3'] ?? 0), Icons.looks_3),
+        _card(context, 'Tổng thưởng', _nf.format(stats['total_bonus']), Icons.monetization_on),
         _card(context, 'Reconciliation', recon ? 'OK' : 'MISMATCH', Icons.check_circle,
             color: recon ? Colors.green : Colors.red),
       ],
@@ -116,9 +119,9 @@ class PreviewPanel extends StatelessWidget {
               rows: topResults.map((r) => DataRow(cells: [
                 DataCell(Text(r['customer'] ?? '')),
                 DataCell(Text(r['doc'] ?? '')),
-                DataCell(Text('${r['bonus_1']}')),
-                DataCell(Text('${r['bonus_2']}')),
-                DataCell(Text('${r['bonus_3']}')),
+                DataCell(Text(_nf.format(r['bonus_1']))),
+                DataCell(Text(_nf.format(r['bonus_2']))),
+                DataCell(Text(_nf.format(r['bonus_3']))),
               ])).toList(),
             ),
           ),
